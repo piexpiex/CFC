@@ -5,9 +5,9 @@ Conjunto de subrutinas de bash y python que permiten realizar una calibración f
 
 # Requisitos
 
--SExtractor (Source-Extractor)\\
+-SExtractor (Source-Extractor)
 
--PSFEx (PSF Extractor)\\
+-PSFEx (PSF Extractor)
 
 -Astroquery
 
