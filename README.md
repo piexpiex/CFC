@@ -5,9 +5,9 @@ Conjunto de subrutinas de bash y python que permiten realizar una calibración f
 
 # Requisitos
 
--*[SExtractor][3]* (Source-Extractor) versión 2.25.0 o mayor.
+-*[SExtractor][1]* (Source-Extractor) versión 2.25.0 o mayor.
 
--*[PSFEx][3]* (PSF Extractor) versión 3.17.1 o mayor
+-*[PSFEx][2]* (PSF Extractor) versión 3.17.1 o mayor
 
 -*[Astroquery][3]*.
 
@@ -22,7 +22,7 @@ Conjunto de subrutinas de bash y python que permiten realizar una calibración f
 
 El programa funciona depositando el fichero CFC.sh, la carpeta CFC_configuration y una carpeta con las imágenes a calibrar (por ejemplo "files") y utilizando el siguiente comando en la terminal de UNIX "sh CFC.sh files".
 
-Las imágenes a calibrar deben estar reducidas y calibradas astrometricamente, para ello se recomienda utilizar *[filabres][4]*.
+Las imágenes a calibrar deben estar reducidas y calibradas astrometricamente, para ello se recomienda utilizar *[filabres][5]*.
 
 [5]: https://github.com/nicocardiel/filabres
 
