@@ -183,13 +183,13 @@ plt.savefig('figures_folder/'+fichero[6:len(fichero)-5]+'flux_selection.pdf')
 
 objects=objects[np.where(listaok==1)]
 
-PSF_FIT=np.array([1.0]*len(objects))
+SM_flag=np.array([1.0]*len(objects))
 for i in range(len(objects)):
 	if objects[i,SPREAD_MODEL]<-0.05:
-		PSF_FIT[i]=0.0
+		SM_flag[i]=0.0
 
 final_objects=objects
-objects=objects[np.where(PSF_FIT==1.0)]
+objects=objects[np.where(SM_flag==1.0)]
 
 c1 = fits.Column(name='NUMBER', array=objects[:,0], format='E')
 c2 = fits.Column(name='SNR_WIN',array=objects[:,3], format='E')
@@ -373,10 +373,15 @@ SPREAD_VALUE=lista[7]
 
 
 print('number of objects after selection criteria',len(mag_sex))
+
 N_B=len(pmag)
 if sdss_key==0:
 	for k in range(len(lista)):
-		lista[k]=lista[k][np.where((class_sdss==6) & (q_mode==1.0))]
+		try:
+			lista[k]=lista[k][np.where((class_sdss==6) & (q_mode=='+'))]
+		except:
+			lista[k]=lista[k][np.where((class_sdss==6) & (q_mode==1.0))]
+
 	mag_sex=lista[0]
 	magerr_sex=lista[1]
 	pmag=lista[5]
@@ -413,15 +418,45 @@ plt.ylim(limit_sat,limit_detection+1)
 
 plt.savefig('figures_folder/'+fichero[6:len(fichero)-5]+'magnitude_calibration.pdf')
 
-c1 = fits.Column(name='NUMBER', array=final_objects[:,0], format='E')
-c2 = fits.Column(name='SNR_WIN',array=final_objects[:,3], format='E')
-c3 = fits.Column(name='ALPHA',array=final_objects[:,12], format='E')
-c4 = fits.Column(name='DELTA',array=final_objects[:,13], format='E')
-c5 = fits.Column(name='MAG',array=Z[1]+Z[0]*final_objects[:,17], format='E')
-c6 = fits.Column(name='MAG error',array=Z[3]+Z[2]*final_objects[:,17]+Z[0]*final_objects[:,18], format='E')
-c7 = fits.Column(name='PSF fit',array=PSF_FIT, format='E')
+#El logout ######
+state='rejected'
+if Z[4]>=0.98:
+	state='accepted'
+images_table=open('logouts_folder/data_table.txt','a')
+
+if images_table=='':
+	images_table.write('Image name' +' '*(len(fichero)-22)+'number of sources' + 'A (mag)' + 'B' +'r' + 'state'+ '\n'+'\n'+'\n')
+
+if sdss_key==0:
+	images_table.write(fichero[6:len(fichero)-5] +' '*3+ str(N_C) +' '*3+ str(round(Z[1],3))+'±'+str(round(Z[3],3))+' '*3+ str(round(Z[0],3))+'±'+str(round(Z[2],3))+' '*3+str(round(Z[4],3)) +' '*3+state+'\n')
+if sdss_key==1:
+	images_table.write(fichero[6:len(fichero)-5] + str(N_B) + str(round(Z[1],3))+'±'+str(round(Z[3],3))+ str(round(Z[0],3))+'±'+str(round(Z[2],3))+str(round(Z[4],3) +state+'\n'))
+
+images_table.close
+###########
+if Z[4]>=0.98:
+	calibration_mag=Z[1]+Z[0]*final_objects[:,17]
+	calibration_mag_error=abs(Z[3])+abs(Z[2]*final_objects[:,17])+abs(Z[0]*final_objects[:,18])
+
+	min_pmag=min(Y)
+	max_pmag=max(Y)
+
+	extrapolation_mag=np.array([1.0]*len(final_objects))
+	for i in range(len(final_objects)):
+		if calibration_mag[i]>max_pmag or calibration_mag[i]<min_pmag:
+			extrapolation_mag[i]=0.0
+
+	c1 = fits.Column(name='NUMBER', array=final_objects[:,0], format='E')
+	c2 = fits.Column(name='SNR_WIN',array=final_objects[:,3], format='E')
+	c3 = fits.Column(name='ALPHA',array=final_objects[:,12], format='E')
+	c4 = fits.Column(name='DELTA',array=final_objects[:,13], format='E')
+	c5 = fits.Column(name='MAG',array=calibration_mag, format='E')
+	c6 = fits.Column(name='MAG error',array=calibration_mag_error, format='E')
+	c7 = fits.Column(name='SM_flag',array=SM_flag, format='E')
+	c8 = fits.Column(name='Ext_flag',array=extrapolation_mag, format='E')
 
 
-t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7],name='catalog')
-t.writeto('catalogs_folder/'+fichero[6:len(fichero)-5]+'catalog.fits',overwrite=True)
+	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7],name='catalog')
+	t.writeto('catalogs_folder/'+fichero[6:len(fichero)-5]+'catalog.fits',overwrite=True)
+
 
