@@ -22,19 +22,6 @@ import sys
 import warnings
 warnings.filterwarnings('ignore')
 
-########################
-### Folders creation ###
-########################
-
-try:
-	os.mkdir('logouts_folder')
-	os.mkdir('figures_folder')
-	os.mkdir('catalogs_folder')
-	print('making directories')
-	print('starting the analysis')
-except:
-	print('starting the analysis')
-
 #############################
 ## Lectura de las imagenes ##
 #############################
@@ -423,9 +410,6 @@ state='rejected'
 if Z[4]>=0.98:
 	state='accepted'
 images_table=open('logouts_folder/data_table.txt','a')
-
-if images_table=='':
-	images_table.write('Image name' +' '*(len(fichero)-22)+'number of sources' + 'A (mag)' + 'B' +'r' + 'state'+ '\n'+'\n'+'\n')
 
 if sdss_key==0:
 	images_table.write(fichero[6:len(fichero)-5] +' '*3+ str(N_C) +' '*3+ str(round(Z[1],3))+'±'+str(round(Z[3],3))+' '*3+ str(round(Z[0],3))+'±'+str(round(Z[2],3))+' '*3+str(round(Z[4],3)) +' '*3+state+'\n')
