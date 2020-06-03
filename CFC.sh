@@ -1,3 +1,5 @@
+python CFC_configuration/python_scripts/setup.py
+
 fichero=$1
 
 for imagen in $fichero/*.fits; do
