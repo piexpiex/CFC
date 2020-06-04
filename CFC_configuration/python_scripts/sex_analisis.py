@@ -8,9 +8,8 @@ from astropy.io import fits
 from astropy.table import Table
 from astropy.coordinates import SkyCoord
 from astropy import units as u
-#from astropy.samp import SAMPIntegratedClient
+import matplotlib.patches as patches
 from astropy.wcs import WCS
-#from astropy.stats import sigma_clipped_stats
 import astropy.visualization as ap_vis
 from astroquery.vizier import Vizier
 from astroquery.xmatch import XMatch
@@ -19,9 +18,11 @@ import numpy as np
 from matplotlib.offsetbox import AnchoredText
 import os
 import sys
-import warnings
-warnings.filterwarnings('ignore')
-
+try:
+	import warnings
+	warnings.filterwarnings('ignore')
+except:
+	print('warnings active')
 #############################
 ## Lectura de las imagenes ##
 #############################
@@ -106,7 +107,7 @@ listaok=np.array([1.0]*len(objects))
 #print('objetos al principio',len(objects))
 
 for i in range(len(objects)):
-	if objects[i,FLUX_MAX]<=0 or objects[i,FLUX_RADIUS]<=0 or objects[i,FWHM_IMAGE]<=0:
+	if objects[i,FLUX_MAX]<=0 or objects[i,FLUX_RADIUS]<=0 or objects[i,FWHM_IMAGE]<=0 or objects[i,FLUX_PSF]<=0:
 		listaok[i]=0
 	if objects[i,MAG_PSF]==99.0:
 		listaok[i]=0
@@ -405,16 +406,48 @@ plt.ylim(limit_sat,limit_detection+1)
 
 plt.savefig('figures_folder/'+fichero[6:len(fichero)-5]+'magnitude_calibration.pdf')
 
-#El logout ######
+
+###########################################
+### Comparasion between both magnitudes ###
+###########################################
+
+comp_mag=pmag - Z[1]-Z[0]*mag_sex
+plt.figure(figsize=(22.0,7.0))
+plt.subplot(1,2,1)
+n_mag_bins=round((limit_detection-limit_sat)/0.2)
+mag_bin=0.2
+for j in range(n_mag_bins):
+	comp_mag_bin=comp_mag[np.where((pmag>limit_sat+j*mag_bin) & (pmag<limit_sat+(j+1)*mag_bin))]
+	if len(comp_mag_bin)>10:
+		pmag_bin=limit_sat+(j+0.5)*mag_bin
+		plt.errorbar(pmag_bin, np.mean(comp_mag_bin), yerr=np.std(comp_mag_bin) ,fmt='ro',markersize=0.5)
+		plt.plot(pmag_bin, np.mean(comp_mag_bin),'k.',markersize=6)
+plt.ylabel(name_mag+' - MAG_PSF ('+name_filter+')')
+plt.xlabel(name_mag)
+plt.ylim(-5,5)
+plt.subplot(1,2,2)
+n,bins,patches=plt.hist(comp_mag,bins=np.logspace(start=-5,stop=1,num=30),density=False,facecolor='r')
+plt.xscale('log')
+plt.ylim(0,max(n)*1.2)
+plt.xlabel(name_mag+' - MAG_PSF ('+name_filter+')')
+plt.show()
+plt.savefig('figures_folder/'+fichero[6:len(fichero)-5]+'magnitude_comparation.pdf')
+
+
+
+##############
+### logout ###
+##############
+
 state='rejected'
 if Z[4]>=0.98:
 	state='accepted'
 images_table=open('logouts_folder/data_table.txt','a')
 
 if sdss_key==0:
-	images_table.write(fichero[6:len(fichero)-5] +' '*3+ str(N_C) +' '*3+ str(round(Z[1],3))+'±'+str(round(Z[3],3))+' '*3+ str(round(Z[0],3))+'±'+str(round(Z[2],3))+' '*3+str(round(Z[4],3)) +' '*3+state+'\n')
+	images_table.write(fichero[6:len(fichero)-5] +','+  str(N_C) +','+  str(round(Z[1],3))+'±'+str(round(Z[3],3)) +','+  str(round(Z[0],3))+'±'+str(round(Z[2],3)) +','+ str(round(Z[4],3)) +','+  state+'\n')
 if sdss_key==1:
-	images_table.write(fichero[6:len(fichero)-5] + str(N_B) + str(round(Z[1],3))+'±'+str(round(Z[3],3))+ str(round(Z[0],3))+'±'+str(round(Z[2],3))+str(round(Z[4],3) +state+'\n'))
+	images_table.write(fichero[6:len(fichero)-5] +','+  str(N_B) +','+  str(round(Z[1],3))+'±'+str(round(Z[3],3)) +','+  str(round(Z[0],3))+'±'+str(round(Z[2],3)) +','+ str(round(Z[4],3)) +','+  state+'\n')
 
 images_table.close
 ###########

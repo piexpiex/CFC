@@ -22,6 +22,6 @@ except:
 images_table=open('logouts_folder/data_table.txt','w')
 
 
-images_table.write('Image name' +' '*(len(fichero)-22)+'number of sources' + 'A (mag)' + 'B' +'r' + 'state'+ '\n'+'\n'+'\n')
+images_table.write('Image name' +','+'number of sources' +','+ 'A (mag)' +','+  'B' +','+ 'r' +','+  'state'+ '\n'+'\n'+'\n')
 
 images_table.close
