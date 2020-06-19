@@ -1,13 +1,12 @@
-# CFC
-Calibrador Fotométrico de CAFOS
+# CFC (Calibrador Fotométrico de CAFOS)
 
-Conjunto de subrutinas de bash y python que permiten realizar una calibración fotométrica automática de las imágenes del intrumento CAFOS del telescopio de 2.2m del observatorio de Calar Alto (CAHA)
+Bash and Python subroutines that perform automatic photometric calibration of images from CAFOS instrument of the 2.2m telescope at the Calar Alto Observatory (CAHA)
 
-# Requisitos
+# Requirements
 
--*[SExtractor][1]* (Source-Extractor) versión 2.25.0 o mayor.
+-*[SExtractor][1]* (Source-Extractor) 2.25.0 version or later.
 
--*[PSFEx][2]* (PSF Extractor) versión 3.17.1 o mayor
+-*[PSFEx][2]* (PSF Extractor) 3.17.1 version or later.
 
 -*[Astroquery][3]*.
 
@@ -18,26 +17,38 @@ Conjunto de subrutinas de bash y python que permiten realizar una calibración f
 [3]: https://astroquery.readthedocs.io/en/latest/
 [4]: https://www.astropy.org/
 
-# Funcionamiento
+# Operation mode
 
-El programa funciona depositando el fichero CFC.sh, la carpeta CFC_configuration y una carpeta con las imágenes a calibrar (por ejemplo "files") y utilizando el siguiente comando en la terminal de UNIX "sh CFC.sh files".
+Description of how use the program in two different modes, one adapted to the output of filabres and the other for self-calibrated images (currently works only with images of SDSS filters).
 
-Las imágenes a calibrar deben estar reducidas y calibradas astrometricamente, para ello se recomienda utilizar *[filabres][5]*.
+## Filabres output
+
+it is recommended to use *[filabres][5]* for a correct reduction and calibration of the images.
 
 [5]: https://github.com/nicocardiel/filabres
 
+--In pocessing--
+
+## Images with own reduction and astrometric calibration
+
+The program works by depositing the CFC.sh file, the CFC_configuration folder and a folder with the images to calibrate (for example "files") and using the following command in the UNIX terminal "sh CFC.sh files". The images have to be reduced and calibrated astrometrically.
+
 ## Procesado de las imágenes
 
--Estimación de las dimensiones de la imagen y aplicación de una máscara e identificación del filtro utilizado (de momento unicamente funciona correctamente para filtros SDSS).
+-Estimation of the image dimensions and application of a mask (if the image has been trimed in a peculiar way, it is recommended to use the mask.py program to create a custom mask.) and identification of the filter used (at the moment it only works for SDSS filters).
 
--Utilización de SExtractor y PSFEx para la identificación de los objetos en la imagen y la estimación de sus parámetros.
+-Use of SExtractor and PSFEx for the identification of the objects in the image and the estimation of their parameters.
 
--Aplicación de diferentes criterios de slección para la identificación de objetos reales y descarte de artefactos.
+-Application of different selection criteria to identify real objects and discard artifacts.
 
--Selección de los objetos de mayor calidad fotométrica y comparación con los catálogos SDSS DR12 o APASS DR9.
+-Selection of the objects with the highest photometric quality and calibration by a comparison with the SDSS DR12 or APASS DR9 catalogs.
 
--Elaboración de un catálogo asociado a cada imagen con los objetos calibrados en magnituds y diferentes parámetros de calidad.
+-Elaboration of a catalog associated with each image with the objects calibrated in magnitudes and different quality parameters.
 
-# Resultados
+# Results
 
--Catálogos de objetos calibrados en magnitud asociados a cada imagen de CAFOS
+-Catalogues of objects calibrated in magnitude associated with each image of CAFOS.
+
+-Images of source selection curves and magnitude calibration.
+
+-Elaboration of a summary table (data_table.csv) of the photometric parameters of each image and if it has been calibrated correctly.
