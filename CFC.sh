@@ -1,6 +1,7 @@
 python CFC_configuration/python_scripts/setup.py
 
 fichero=$1
+id_table=$2
 
 for imagen in $fichero/*.fits; do
 
@@ -13,6 +14,6 @@ for imagen in $fichero/*.fits; do
 
 	sex $imagen -c CFC_configuration/sextractor_configuration_files/sextractor2.sex
 
-	python CFC_configuration/python_scripts/sex_analisis.py $imagen
+	python CFC_configuration/python_scripts/sex_analisis.py $imagen $id_table
 
 done
