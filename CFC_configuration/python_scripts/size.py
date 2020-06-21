@@ -4,6 +4,7 @@ from read_files import *
 import sys
 
 fichero=sys.argv[1]
+
 hdulist = fits.open(fichero)
 
 data = hdulist[0].data

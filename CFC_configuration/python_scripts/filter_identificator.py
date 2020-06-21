@@ -1,33 +1,22 @@
+from read_files import *
 
-
-def search_name(name):
-	filter_name=''
-	for j in range(len(name)):
-		if name[j]==' ':
-			continue
-		elif j==0:
-			if name[j+1]==' ':
-				filter_name=name[j]
-		elif j==len(name)-1:
-			if name[len(name)-2]==' ':
-				filter_name=name[j]
-		else:
-			if name[j-1]==' ' and name[j+1]==' ':
-				filter_name=name[j]		
-			else:
-				continue
-	if filter_name=='' or filter_name==' ':
-		filter_name='r'
+def search_name(filter_name):
+	for j in range(len(filter_name)-4):
+		if filter_name[j:j+4]=='sdss' or filter_name[j:j+4]=='SDSS':
+			filter_name=filter_name[j+4:]
+	filter_name=delete_space(filter_name)
+	
 	if filter_name=='u' or filter_name=='U':
 		filter_name='u'
-	if filter_name=='g' or filter_name=='G':
+	elif filter_name=='g' or filter_name=='G':
 		filter_name='g'
-	if filter_name=='r' or filter_name=='R':
+	elif filter_name=='r' or filter_name=='R':
 		filter_name='r'
-	if filter_name=='i' or filter_name=='I':
+	elif filter_name=='i' or filter_name=='I':
 		filter_name='i'
-	if filter_name=='z' or filter_name=='Z':
+	elif filter_name=='z' or filter_name=='Z':
 		filter_name='z'
-		
+	else:
+		filter_name='X'
 	return(filter_name)
 

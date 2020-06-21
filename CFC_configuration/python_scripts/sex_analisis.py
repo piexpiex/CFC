@@ -10,14 +10,19 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 import matplotlib.patches as patches
 from astropy.wcs import WCS
+from astropy.coordinates import Angle
 import astropy.visualization as ap_vis
-from astroquery.vizier import Vizier
-from astroquery.xmatch import XMatch
-from astroquery.simbad import Simbad
 import numpy as np
 from matplotlib.offsetbox import AnchoredText
 import os
 import sys
+
+sys.stdout = open(os.devnull, 'w')
+from astroquery.vizier import Vizier
+from astroquery.xmatch import XMatch
+from astroquery.simbad import Simbad
+sys.stdout = sys.__stdout__
+
 try:
 	import warnings
 	warnings.filterwarnings('ignore')
@@ -28,20 +33,62 @@ except:
 #############################
 
 fichero=sys.argv[1]
-hdulist = fits.open(fichero)
-name_filter=hdulist[0].header['INSFLNAM']
+try:
+	id_table=open(sys.argv[2])
+
+	lista=[]
+	images=[]
+	for linea in id_table:
+		medidor=0
+		cuenta=0
+		numero=''
+		for k in range(len(linea)):
+			if linea[k]==',':
+				medidor=0
+			elif linea[k]!=',':
+				medidor=1
+				numero=numero+linea[k]
+			if medidor==0 and numero!='' or k==len(linea)-1:
+				numero=str(numero)
+				lista.append(delete_space(numero))
+				numero=''
+		if len(lista)>1:
+				images.append(lista)
+		lista=[]
+	images=np.array(images)
+	caha_id=images[:,0]
+	filter_id=images[:,1]
+	programa_id=images[:,2] 
+	fich_reducido_id=images[:,3]
+	hdulist = fits.open(fichero)
+	fichero=delete_folder_name(fichero)
+	print(fichero)
+	print(fich_reducido_id[5])
+	name_filter=filter_id[np.where(fich_reducido_id==fichero+'\n')]#hdulist[0].header['INSFLNAM']
+	name_filter=name_filter[0]
+	CAHA_ID=caha_id[np.where(fich_reducido_id==fichero+'\n')]
+
+except:
+	name_filter=hdulist[0].header['INSFLNAM']
+	CAHA_ID='X'
+MJD=hdulist[0].header['MJD-OBS']
 color=search_name(name_filter)
+print('name_filter',name_filter,color)
 data = hdulist[0].data
-
-#hdulist = fits.open("background_substracted.fits") #caf-20170225-21_51_59-sci-krek.fits
-hdulist = fits.open("CFC_configuration/sextractor_result_files/bkg.fits")
-data_bkg= hdulist[0].data
-
-
-data_sub=data-data_bkg
+if color=='X':
+	print('no SDSS filter')
+	images_table=open('logouts_folder/data_table.csv','a')
+	images_table.write(fichero[0:len(fichero)-5]+','+'   ----No SDSS filter---')
+	exit()
+#hdulist = fits.open("CFC_configuration/sextractor_result_files/bkg.fits")
+#data_bkg= hdulist[0].data
+#data_sub=data-data_bkg
 # show the image
 
-#leyendo test.cat
+########################
+### Reading test.cat ###
+########################
+
 catalogo = open('CFC_configuration/sextractor_result_files/test.cat')
 NUMBER=0       #   1 NUMBER                 Running object number                                     
 FLAGS=1        #   2 FLAGS                  Extraction flags                                          
@@ -66,11 +113,15 @@ ELONGATION=19  #  20 ELONGATION             A_IMAGE/B_IMAGE
 ELLIPTICITY=20 #  21 ELLIPTICITY            1 - B_IMAGE/A_IMAGE                                       
 CLASS_STAR=21  #  22 CLASS_STAR             S/G classifier output                                     
 SPREAD_MODEL=22#  23 SPREAD_MODEL           Spread parameter from model-fitting   
+X_WORLD=23##  24 X_WORLD                Barycenter position along world x axis                     [deg]
+Y_WORLD=24#  25 Y_WORLD                Barycenter position along world y axis                     [deg]
+ERRX2_WORLD=25#  26 ERRX2_WORLD            Variance of position along X-WORLD (alpha)                 [deg**2]
+ERRY2_WORLD=26#  27 ERRY2_WORLD            Variance of position along Y-WORLD (delta)                 [deg**2]
+
 
 lista=[]
 objects=[]
 
-hj=0
 for linea in catalogo:
 	if linea[0]=='#':
 		continue
@@ -91,20 +142,14 @@ for linea in catalogo:
 				numero=''
 		objects.append(lista)
 		lista=[]
-		hj=hj+1
 objects=np.array(objects)
 
-#Object detection
-# plot background-subtracted image
-fig, ax = plt.subplots()
-#m, s = np.mean(data_sub), np.std(data_sub)
-m, s = np.mean(data_sub), np.std(data_sub)
-im = ax.imshow(data_sub, interpolation='nearest', cmap='gray', vmin=m-s, vmax=m+s, origin='lower')
+
 Nobjetos=0
-# plot an ellipse for each object
+
 listaok=np.array([1.0]*len(objects))
 
-#print('objetos al principio',len(objects))
+print('initial number of objects',len(objects))
 
 for i in range(len(objects)):
 	if objects[i,FLUX_MAX]<=0 or objects[i,FLUX_RADIUS]<=0 or objects[i,FWHM_IMAGE]<=0 or objects[i,FLUX_PSF]<=0:
@@ -115,10 +160,10 @@ for i in range(len(objects)):
 		listaok[i]=0
 	if abs(objects[i,SNR_WIN])<5 or abs(objects[i,SNR_WIN])>0.99*10**30:
 		listaok[i]=0
-	if np.shape(data_sub)==(1650,1650):
+	if np.shape(data)==(1650,1650):
 		if ((abs(objects[i,X_IMAGE]-825)+objects[i,A_IMAGE])**2+ (abs(objects[i,Y_IMAGE]-825)+objects[i,A_IMAGE])**2)**0.5>814: 
 			listaok[i]=0
-	if np.shape(data_sub)==(1601,1601):
+	if np.shape(data)==(1601,1601):
 		if ((abs(objects[i,X_IMAGE]-808)+objects[i,A_IMAGE])**2+ (abs(objects[i,Y_IMAGE]-817)+objects[i,A_IMAGE])**2)**0.5>814:
 			listaok[i]=0
 	if listaok[i]==1.0:
@@ -144,54 +189,99 @@ for i in range(len(objects)):
 		if flux_coef[i]>flux_mean2+3*flux_sigma2:
 			listaok[i]=-1
 
+
+max_flux=objects[np.where(listaok==1),FLUX_MAX]
+psf_flux=objects[np.where(listaok==1),FLUX_PSF]
+FLUX_step=29000
+FLUX_step_d=2000
+FLUX_SATURATION_1=60000
+while abs(FLUX_step_d)>100 and FLUX_step<65000: # Pearson r criteria
+	print(FLUX_step,FLUX_step_d)
+	FLUX_step=FLUX_step+FLUX_step_d
+	r=ajuste_lineal(psf_flux[np.where(max_flux<FLUX_step)],max_flux[np.where(max_flux<FLUX_step)])[4]
+	print(r)
+	if FLUX_step>61000:
+		FLUX_step=60000
+		break
+	if r>=0.98:
+		continue
+	if r<0.98:
+		FLUX_SATURATION_1=FLUX_step
+		FLUX_step=FLUX_step-FLUX_step_d
+		FLUX_step_d=FLUX_step_d/2
+
+FLUX_SATURATION_1=FLUX_step-FLUX_step_d	
+FLUX_step=29000
+FLUX_step_d=2000
+FLUX_SATURATION_2=60000
+A0=ajuste_lineal(psf_flux[np.where(max_flux<FLUX_step)],max_flux[np.where(max_flux<FLUX_step)])[0]
+while abs(FLUX_step_d)>100 and FLUX_step<65000: # Slope criteria
+	FLUX_step=FLUX_step+FLUX_step_d
+	A=ajuste_lineal(psf_flux[np.where(max_flux<FLUX_step)],max_flux[np.where(max_flux<FLUX_step)])[0]
+	print(FLUX_step,FLUX_step_d,A0,A)
+	if FLUX_step>61000:
+		FLUX_step=60000
+		break
+	if A>=A0/1.01:
+		continue
+	if A<A0/1.01:
+		FLUX_SATURATION_2=FLUX_step
+		FLUX_step=FLUX_step-FLUX_step_d
+		FLUX_step_d=FLUX_step_d/2
+
+FLUX_SATURATION_2=FLUX_step-FLUX_step_d	
+FLUX_SATURATION=min([FLUX_SATURATION_1,FLUX_SATURATION_2])-2*flux_sigma2
 for i in range(len(objects)):
-	if objects[i][FLUX_MAX]>0.9*max(objects[:,FLUX_MAX]):
+	if objects[i][FLUX_MAX]>FLUX_SATURATION:
 		listaok[i]=2
 
 plt.figure(figsize=(22.0,7.0))
-for i in range(len(objects)):
-	if listaok[i]==2:
-		plt.plot(objects[i,FLUX_PSF], objects[i,FLUX_MAX],'r.')
-	elif listaok[i]==1:
-		plt.plot(objects[i,FLUX_PSF], objects[i,FLUX_MAX],'g.')
-	elif listaok[i]==-1:
-		plt.plot(objects[i,FLUX_PSF], objects[i,FLUX_MAX],'b.')
+
+plt.plot(objects[np.where(listaok==2),FLUX_PSF], objects[np.where(listaok==2),FLUX_MAX],'r.')
+plt.plot(objects[np.where(listaok==1),FLUX_PSF], objects[np.where(listaok==1),FLUX_MAX],'g.')
+plt.plot(objects[np.where(listaok==-1),FLUX_PSF], objects[np.where(listaok==-1),FLUX_MAX],'b.')
+plt.plot(objects[np.where(listaok==2),FLUX_PSF][0], objects[np.where(listaok==2),FLUX_MAX][0],'r.',label='saturated')
+plt.plot(objects[np.where(listaok==1),FLUX_PSF][0], objects[np.where(listaok==1),FLUX_MAX][0],'g.',label='Valid')
+plt.plot(objects[np.where(listaok==-1),FLUX_PSF][0], objects[np.where(listaok==-1),FLUX_MAX][0],'b.',label='artifacts')
+
 #plt.plot([1*10**4,10**5,max(f1)],ffit([1*10**4,10**5,max(f1)]),'k')
 plt.suptitle('FLUX MAX vs FLUX PSF (SNR >=5)')
 plt.ylabel('FLUX MAX [count]')
 plt.xlabel('FLUX PSF [count]')
 plt.yscale('log')
 plt.xscale('log')
-plt.savefig('figures_folder/'+fichero[6:len(fichero)-5]+'flux_selection.pdf')
+#plt.legend(framealpha=0.1)
+
+plt.savefig('figures_folder/'+fichero[0:len(fichero)-5]+'_flux_selection.pdf')
 
 
-###########################################
-######### Calibración fotometrica #########
-###########################################
+############################
+######### Skymatch #########
+############################
 
 objects=objects[np.where(listaok==1)]
 
-SM_flag=np.array([1.0]*len(objects))
-for i in range(len(objects)):
-	if objects[i,SPREAD_MODEL]<-0.05:
-		SM_flag[i]=0.0
-
+SM_flag=objects[:,SPREAD_MODEL]
+#for i in range(len(objects)):
+#	if objects[i,SPREAD_MODEL]<-0.05:
+#		SM_flag[i]=0.0
+cl_SDSS=np.array([0.0]*len(objects[:,SPREAD_MODEL]))
 final_objects=objects
-objects=objects[np.where(SM_flag==1.0)]
+objects=objects[np.where(SM_flag>-0.05)]
 
-c1 = fits.Column(name='NUMBER', array=objects[:,0], format='E')
-c2 = fits.Column(name='SNR_WIN',array=objects[:,3], format='E')
-c3 = fits.Column(name='FLUX_MAX',array=objects[:,10], format='E')
-c4 = fits.Column(name='ALPHA',array=objects[:,12], format='E')
-c5 = fits.Column(name='DELTA',array=objects[:,13], format='E')
-c6 = fits.Column(name='FWHM_WORLD',array=objects[:,14], format='E')
-c7 = fits.Column(name='ELLONGATION',array=objects[:,19], format='E')
-c8 = fits.Column(name='ELLIPTICITY',array=objects[:,20], format='E')
-c9 = fits.Column(name='FLUX_PSF',array=objects[:,15], format='E')
-c10 = fits.Column(name='FLUXERR_PSF',array=objects[:,16], format='E')
-c11 = fits.Column(name='MAG_PSF',array=objects[:,17], format='E')
-c12 = fits.Column(name='MAGERR_PSF',array=objects[:,18], format='E')
-c13 = fits.Column(name='SPREAD_MODEL',array=objects[:,22], format='E')
+c1 = fits.Column(name='NUMBER', array=objects[:,NUMBER], format='E')
+c2 = fits.Column(name='SNR_WIN',array=objects[:,SNR_WIN], format='E')
+c3 = fits.Column(name='FLUX_MAX',array=objects[:,FLUX_MAX], format='E')
+c4 = fits.Column(name='ALPHA',array=objects[:,ALPHA_J2000], format='E')
+c5 = fits.Column(name='DELTA',array=objects[:,DELTA_J2000], format='E')
+c6 = fits.Column(name='FWHM_WORLD',array=objects[:,FWHM_WORLD], format='E')
+c7 = fits.Column(name='ELONGATION',array=objects[:,ELONGATION], format='E')
+c8 = fits.Column(name='ELLIPTICITY',array=objects[:,ELLIPTICITY], format='E')
+c9 = fits.Column(name='FLUX_PSF',array=objects[:,FLUX_PSF], format='E')
+c10 = fits.Column(name='FLUXERR_PSF',array=objects[:,FLUXERR_PSF], format='E')
+c11 = fits.Column(name='MAG_PSF',array=objects[:,MAG_PSF], format='E')
+c12 = fits.Column(name='MAGERR_PSF',array=objects[:,MAGERR_PSF], format='E')
+c13 = fits.Column(name='SPREAD_MODEL',array=objects[:,SPREAD_MODEL], format='E')
 
 #t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8],name='valores')
 #t.writeto('a.fits',overwrite=True)
@@ -213,29 +303,30 @@ t.write('CFC_configuration/Intermediate_files/parametros.vot', table_id='updated
 #cross match (en open nuestra tabla)
 #V/147/sdss12 #II/336/apass9 #hay que ponerlo para que intente SDSS y si no APASS
 sdss_key=0
-try:
-	catalog = XMatch.query(cat1=open('CFC_configuration/Intermediate_files/parametros.vot'),
+catalog = XMatch.query(cat1=open('CFC_configuration/Intermediate_files/parametros.vot'),
                          cat2='vizier:V/147/sdss12',
                          max_distance=2 * u.arcsec,
                          colRA1='ALPHA', colDec1='DELTA')
-	sdss_key=0
-except:
+
+if len(catalog)==0:
+	print('apa')
+	exit()	
 	catalog = XMatch.query(cat1=open('CFC_configuration/Intermediate_files/parametros.vot'),
                          cat2='vizier:II/336/apass9',
                          max_distance=2 * u.arcsec,
                          colRA1='ALPHA', colDec1='DELTA')
 	sdss_key=1
-#seleccion de columnas
+
+if len(catalog)<6:
+	exit()	
 
 
 
-
-
-
-
+#Columns selection
+NUMBER_XMATCH=catalog['NUMBER']
 mag_sex=catalog['MAG_PSF']
 magerr_sex=catalog['MAGERR_PSF']
-ellongation=catalog['ELLONGATION']
+ellongation=catalog['ELONGATION']
 ellipticity=catalog['ELLIPTICITY']
 FWHM=catalog['FWHM_WORLD']
 SPREAD_VALUE=catalog['SPREAD_MODEL']
@@ -244,6 +335,8 @@ limit_sat=0
 if sdss_key==0:
 	q_mode=catalog['q_mode']
 	class_sdss=catalog['class']
+	for j in range(len(class_sdss)):
+		cl_SDSS[np.where(final_objects[:,0]==NUMBER_XMATCH[j])]=class_sdss[j]
 	if color=='u'or color=='U':
 		pmag=catalog['umag']
 		e_pmag=catalog['e_umag']
@@ -308,20 +401,25 @@ if sdss_key==1:
 
 lista=[mag_sex,magerr_sex,ellongation,ellipticity,FWHM,pmag,e_pmag,SPREAD_VALUE]
 print('number of skymatch objects',len(pmag))
-N_A=len(pmag)
 
+plt.figure(figsize=(22.0,7.0))
+plt.suptitle('Magnitude calibration')
+plt.xlabel('MAG PSF ('+name_filter+')')
+plt.ylabel(name_mag)
+N_A=len(pmag)
+plt.plot(mag_sex,pmag,'k.',label='skymatch objects('+str(N_A)+')')
+
+###############################
+### Photometric calibration ###
+###############################
+
+#error mag selection
 
 for k in range(len(lista)):
 	lista[k]=lista[k][np.where((mag_sex<0.2) & (np.isnan(pmag)==False) & (pmag<limit_detection) & (pmag>limit_sat) & (e_pmag<0.2))]
 if sdss_key==0:
 	class_sdss=class_sdss[np.where((mag_sex<0.2) & (np.isnan(pmag)==False) & (pmag<limit_detection) & (pmag>limit_sat) & (e_pmag<0.2))]
 	q_mode=q_mode[np.where((mag_sex<0.2) & (np.isnan(pmag)==False) & (pmag<limit_detection) & (pmag>limit_sat) & (e_pmag<0.2))]
-
-
-
-##########################################
-## criterios de seleccion en fotometria ##
-##########################################
 
 mag_sex=lista[0]
 magerr_sex=lista[1]
@@ -332,6 +430,7 @@ pmag=lista[5]
 e_pmag=lista[6]
 SPREAD_VALUE=lista[7]
 
+#Morphology selection
 
 median_FWHM=np.median(FWHM)
 Rq_FWHM=np.percentile(FWHM,75)-np.percentile(FWHM,25)
@@ -360,9 +459,11 @@ SPREAD_VALUE=lista[7]
 
 
 
-print('number of objects after selection criteria',len(mag_sex))
+print('number of objects after morphology criteria',len(mag_sex))
 
 N_B=len(pmag)
+plt.plot(mag_sex,pmag,'b.',label='objects with morphology criteria ('+str(N_B)+')')
+
 if sdss_key==0:
 	for k in range(len(lista)):
 		try:
@@ -376,62 +477,44 @@ if sdss_key==0:
 	e_pmag=lista[6]
 	SPREAD_VALUE=lista[7]
 	print('number of objects with SDSS class=6 & q mode=1.0 ',len(mag_sex))
-	N_C=len(pmag)
+	
 
 if len(mag_sex)<6:
 	print('Insufficient number of objects for photometric calibration')
 	exit()
-if abs(max(mag_sex)-min(mag_sex))<2:
-	print('Small magnitude range,photometric calibration may not be correct')
+	
+#if abs(max(mag_sex)-min(mag_sex))<2:
+#	print('Small magnitude range,photometric calibration may not be correct')
 
-#ajuste=ajuste_lineal(mag_sex,pmag)
+#Photometry calibration
 
-plt.figure(figsize=(22.0,7.0))
-if sdss_key==0:
-	plt.suptitle('Ajuste de magnitudes (n='+str(N_A)+'/'+str(N_B)+'/'+str(N_C)+')')
-if sdss_key==1:
-	plt.suptitle('Ajuste de magnitudes (n='+str(N_A)+'/'+str(N_B)+')')
-plt.xlabel('MAG PSF ('+name_filter+')')
-plt.ylabel(name_mag)
 
-plt.plot(mag_sex,pmag,'k.')
-
-X,Y,Z=sigma_c(X=mag_sex,Y=pmag,n_sigma=3)
-plt.plot(X,Y,'b.')
 X,Y,Z=sigma_c(X=mag_sex,Y=pmag,n_sigma=2)
-plt.plot(X,Y,'r.')
-plt.plot(mag_sex,Z[1]+Z[0]*mag_sex,'r',label=name_mag+'={0:.3g}'.format(Z[0])+' × MAG SEX + {0:.3g}'.format(Z[1]) + ' (r={0:.3g}'.format(Z[4])+')')
+N_C=len(X)
+plt.plot(X,Y,'r.',label='Calibration objects ('+str(N_C)+')')
+plt.plot(mag_sex,Z[1]+Z[0]*mag_sex,'r',label=name_mag+'={0:.3g}'.format(Z[0])+' × MAG PSF + {0:.3g}'.format(Z[1]) + ' (r={0:.3g}'.format(Z[4])+')')
 plt.legend()
-plt.ylim(limit_sat,limit_detection+1)
+#plt.ylim(limit_sat,limit_detection+1)
 
-plt.savefig('figures_folder/'+fichero[6:len(fichero)-5]+'magnitude_calibration.pdf')
+plt.savefig('figures_folder/'+fichero[0:len(fichero)-5]+'_magnitude_calibration.pdf')
 
 
 ###########################################
 ### Comparasion between both magnitudes ###
 ###########################################
 
-comp_mag=pmag - Z[1]-Z[0]*mag_sex
+comp_mag=Y - Z[1]-Z[0]*X
 plt.figure(figsize=(22.0,7.0))
 plt.subplot(1,2,1)
-n_mag_bins=round((limit_detection-limit_sat)/0.2)
-mag_bin=0.2
-for j in range(n_mag_bins):
-	comp_mag_bin=comp_mag[np.where((pmag>limit_sat+j*mag_bin) & (pmag<limit_sat+(j+1)*mag_bin))]
-	if len(comp_mag_bin)>10:
-		pmag_bin=limit_sat+(j+0.5)*mag_bin
-		plt.errorbar(pmag_bin, np.mean(comp_mag_bin), yerr=np.std(comp_mag_bin) ,fmt='ro',markersize=0.5)
-		plt.plot(pmag_bin, np.mean(comp_mag_bin),'k.',markersize=6)
+for j in range(len(comp_mag)):
+	plt.plot(pmag[j], comp_mag[j],'r.',markersize=6)
 plt.ylabel(name_mag+' - MAG_PSF ('+name_filter+')')
 plt.xlabel(name_mag)
-plt.ylim(-5,5)
 plt.subplot(1,2,2)
-n,bins,patches=plt.hist(comp_mag,bins=np.logspace(start=-5,stop=1,num=30),density=False,facecolor='r')
-plt.xscale('log')
+n,bins,patches=plt.hist(comp_mag,bins=np.arange(-1,1.05,0.05),density=False,facecolor='r')
 plt.ylim(0,max(n)*1.2)
 plt.xlabel(name_mag+' - MAG_PSF ('+name_filter+')')
-plt.show()
-plt.savefig('figures_folder/'+fichero[6:len(fichero)-5]+'magnitude_comparation.pdf')
+plt.savefig('figures_folder/'+fichero[0:len(fichero)-5]+'_magnitude_comparation.pdf')
 
 
 
@@ -441,13 +524,13 @@ plt.savefig('figures_folder/'+fichero[6:len(fichero)-5]+'magnitude_comparation.p
 
 state='rejected'
 if Z[4]>=0.98:
-	state='accepted'
-images_table=open('logouts_folder/data_table.txt','a')
+	state='calibrated'
+images_table=open('logouts_folder/data_table.csv','a')
 
 if sdss_key==0:
-	images_table.write(fichero[6:len(fichero)-5] +','+  str(N_C) +','+  str(round(Z[1],3))+'±'+str(round(Z[3],3)) +','+  str(round(Z[0],3))+'±'+str(round(Z[2],3)) +','+ str(round(Z[4],3)) +','+  state+'\n')
+	images_table.write(fichero[0:len(fichero)-5] +','+  str(N_C) +','+  str(round(Z[1],3))+','+  str(round(Z[3],3)) +','+  str(round(Z[0],3))+','+  str(round(Z[2],3)) +','+ str(round(Z[4],3)) +','+  state+'\n')
 if sdss_key==1:
-	images_table.write(fichero[6:len(fichero)-5] +','+  str(N_B) +','+  str(round(Z[1],3))+'±'+str(round(Z[3],3)) +','+  str(round(Z[0],3))+'±'+str(round(Z[2],3)) +','+ str(round(Z[4],3)) +','+  state+'\n')
+	images_table.write(fichero[0:len(fichero)-5] +','+  str(N_B) +','+  str(round(Z[1],3))+','+  str(round(Z[3],3)) +','+  str(round(Z[0],3))+','+  str(round(Z[2],3)) +','+ str(round(Z[4],3)) +','+  state+'\n')
 
 images_table.close
 ###########
@@ -458,22 +541,47 @@ if Z[4]>=0.98:
 	min_pmag=min(Y)
 	max_pmag=max(Y)
 
-	extrapolation_mag=np.array([1.0]*len(final_objects))
+	extrapolation_mag=np.array(['A']*len(final_objects))
+	#A: La magnitud de la detección cae dentro del rango de magnitudes utilizado en la calibración.
+	#B: La magnitud es más débil que cualquiera de las fuentes utilizadas en la calibración
+	#C: La magnitud es más brillante que cualquiera de las fuentes utlizadas en la calibración. 
 	for i in range(len(final_objects)):
-		if calibration_mag[i]>max_pmag or calibration_mag[i]<min_pmag:
-			extrapolation_mag[i]=0.0
-
-	c1 = fits.Column(name='NUMBER', array=final_objects[:,0], format='E')
-	c2 = fits.Column(name='SNR_WIN',array=final_objects[:,3], format='E')
-	c3 = fits.Column(name='ALPHA',array=final_objects[:,12], format='E')
-	c4 = fits.Column(name='DELTA',array=final_objects[:,13], format='E')
-	c5 = fits.Column(name='MAG',array=calibration_mag, format='E')
-	c6 = fits.Column(name='MAG error',array=calibration_mag_error, format='E')
-	c7 = fits.Column(name='SM_flag',array=SM_flag, format='E')
-	c8 = fits.Column(name='Ext_flag',array=extrapolation_mag, format='E')
-
-
-	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7],name='catalog')
-	t.writeto('catalogs_folder/'+fichero[6:len(fichero)-5]+'catalog.fits',overwrite=True)
+		if calibration_mag[i]>max_pmag:
+			extrapolation_mag[i]='C'
+		elif calibration_mag[i]<min_pmag:
+			extrapolation_mag[i]='B'
+	c1 = fits.Column(name='Image_identifier', array=np.array(len(final_objects[:,0])*['CAHA_CAFOS_BBI_DR1_'+str(CAHA_ID[0])]), format='50A')
+	NUMBER_ID=np.arange(1,1+len(final_objects[:,0]),1).astype(np.str)
+	DETECTION_ID=np.array(len(NUMBER_ID)*['CAHA_CAFOS_BBI_DR1_'+CAHA_ID[0]+'_0000'])
+	for j in range(len(NUMBER_ID)):
+		DETECTION_ID[j]='CAHA_CAFOS_BBI_DR1_'+CAHA_ID[0]+'_'+'0'*(3-int(np.log10(1+j)))+NUMBER_ID[j]
+	c2 = fits.Column(name='Detection_ID', array=DETECTION_ID, format='50A')
+	c3 = fits.Column(name='MJD', array=np.array(len(final_objects[:,0])*[str(MJD)]), format='12A')
+	c4 = fits.Column(name='SNR_WIN',array=final_objects[:,SNR_WIN], format='E')
+	c5 = fits.Column(name='RAJ2000 (deg)',array=final_objects[:,ALPHA_J2000], format='E')
+	c6 = fits.Column(name='DEJ2000 (deg)',array=final_objects[:,DELTA_J2000], format='E')
+	c7 = fits.Column(name='e_RAJ2000 (arcsec)',array=3600*final_objects[:,ERRX2_WORLD]**0.5, format='E')
+	c8 = fits.Column(name='e_DEJ2000 (arcsec)',array=3600*final_objects[:,ERRY2_WORLD]**0.5, format='E')
+	RA=Angle(final_objects[:,ALPHA_J2000]* u.deg)
+	DEC=Angle(final_objects[:,DELTA_J2000]* u.deg)
+	e_RA=Angle(final_objects[:,ERRX2_WORLD]**0.5* u.deg)
+	e_DEC=Angle(final_objects[:,ERRY2_WORLD]**0.5* u.deg)
+	c9 = fits.Column(name='RAJ2000 (hh:mm:ss)', array=RA.to_string(unit=u.hourangle, sep=(':',':')), format='20A')
+	c10 = fits.Column(name='DEJ2000 (dd:mm:ss)', array=DEC.to_string(unit=u.deg, sep=(':',':')), format='20A')
+	c11 = fits.Column(name='e_RAJ2000 (hh:mm:ss)', array=e_RA.to_string(unit=u.hourangle, sep=(':',':')), format='20A')
+	c12 = fits.Column(name='e_DEJ2000 (dd:mm:ss)', array=e_DEC.to_string(unit=u.deg, sep=(':',':')), format='20A')
+	c13 = fits.Column(name='MAG',array=calibration_mag, format='E')
+	c14 = fits.Column(name='e_MAG',array=calibration_mag_error, format='E')
+	c15 = fits.Column(name='MAG_sex',array=final_objects[:,MAG_PSF], format='E')
+	c16 = fits.Column(name='e_MAG_sex',array=final_objects[:,MAGERR_PSF], format='E')
+	c17 = fits.Column(name='cl_SDSS',array=cl_SDSS, format='E')
+	c18 = fits.Column(name='SPREAD_MODEL',array=SM_flag, format='E')
+	c19 = fits.Column(name='flag_calib',array=extrapolation_mag, format='3A')
+	c20 = fits.Column(name='Filter',array=np.array([name_filter]*len(final_objects[:,0])), format='10A')
+	c21 = fits.Column(name='Elongation',array=final_objects[:,ELONGATION], format='E')
+	c22 = fits.Column(name='FWHM (arcsec)',array=3600*final_objects[:,FWHM_WORLD], format='E')
+	
+	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22],name='catalog')
+	t.writeto('catalogs_folder/'+fichero[6:len(fichero)-5]+'_catalog.fits',overwrite=True)
 
 

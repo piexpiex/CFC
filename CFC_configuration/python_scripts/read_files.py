@@ -4,6 +4,14 @@ def delete_space(A):
 	while A[len(A)-1]==' ':
 		A=A[0:len(A)-1]
 	return(A)
+def delete_folder_name(A):
+	B=''
+	key=0
+	for j in range(len(A)):
+		if A[j]=='/':
+			key=j
+	B=A[key+1:]
+	return(B)
 def add_space(A):
 	word=''
 	for j in range(len(A)):
