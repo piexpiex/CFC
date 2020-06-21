@@ -1,6 +1,6 @@
 # CFC (Calibrador Fotométrico de CAFOS)
 
-Bash and Python subroutines that perform automatic photometric calibration of images from CAFOS instrument of the 2.2m telescope at the Calar Alto Observatory (CAHA)
+Bash and Python subroutines that perform automatic photometric calibration of images from CAFOS instrument of the 2.2m telescope at the Calar Alto Observatory (CAHA). 
 
 # Requirements
 
@@ -33,7 +33,7 @@ it is recommended to use *[filabres][5]* for a correct reduction and calibration
 
 The program works by depositing the CFC.sh file, the CFC_configuration folder and a folder with the images to calibrate (for example "files") and using the following command in the UNIX terminal "sh CFC.sh files". The images have to be reduced and calibrated astrometrically.
 
-## Procesado de las imágenes
+# Image processing
 
 -Estimation of the image dimensions and application of a mask (if the image has been trimed in a peculiar way, it is recommended to use the mask.py program to create a custom mask.) and identification of the filter used (at the moment it only works for SDSS filters).
 
@@ -52,3 +52,11 @@ The program works by depositing the CFC.sh file, the CFC_configuration folder an
 -Images of source selection curves and magnitude calibration.
 
 -Elaboration of a summary table (data_table.csv) of the photometric parameters of each image and if it has been calibrated correctly.
+
+see the official documentation at: *[https://readthedocs.org/projects/cafos-photometry-calibrator][6]*
+
+see the official repository at: *[https://github.com/piexpiex/CFC][7]*
+
+[6]: https://readthedocs.org/projects/cafos-photometry-calibrator/
+
+[7]: https://github.com/piexpiex/CFC
