@@ -18,6 +18,5 @@ CFC is in the same project as `filabres <https://filabres.readthedocs.io/en/late
    Requirements_and_download
    Configuration
    Operation
-   Analysing_a_set_of_filabres_images
-   Analysing_images_with_own_reduction_and_astrometric_calibration
+   Analysing_images
    References
