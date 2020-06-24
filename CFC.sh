@@ -1,19 +1,57 @@
+ #!/bin/bash
+
 python CFC_configuration/python_scripts/setup.py
 
-fichero=$1
-id_table=$2
+arg=$1
 
-for imagen in $fichero/*.fits; do
+case  $arg in
+	*.csv)
+		format="csv"
+		line=0
+		while IFS=',' read -r f1 f2 f3 f4
+			
+		do 
+			if [ $line -gt 0 ];
+				then 
+					bh=${f4#* } 
+					imagen=$f3/$bh
 
-	python CFC_configuration/python_scripts/size.py $imagen
+						python CFC_configuration/python_scripts/size.py $imagen
 
-	sex $imagen -c CFC_configuration/sextractor_configuration_files/sextractor1.sex
+						sex $imagen -c CFC_configuration/sextractor_configuration_files/sextractor1.sex
 
 
-	psfex CFC_configuration/sextractor_result_files/test_psf.cat -c CFC_configuration/sextractor_configuration_files/psfex_config.psfex
+						psfex CFC_configuration/sextractor_result_files/test_psf.cat -c CFC_configuration/sextractor_configuration_files/psfex_config.psfex
 
-	sex $imagen -c CFC_configuration/sextractor_configuration_files/sextractor2.sex
+						sex $imagen -c CFC_configuration/sextractor_configuration_files/sextractor2.sex
 
-	python CFC_configuration/python_scripts/sex_analisis.py $imagen $id_table
+						python CFC_configuration/python_scripts/sex_analisis.py $imagen $arg
 
-done
+
+
+
+			fi
+			line=$((line + 1))
+		done < "$arg"
+		;;
+	*)		format="folder"
+
+			for imagen in $arg/*.fits; do
+
+				python CFC_configuration/python_scripts/size.py $imagen
+
+				sex $imagen -c CFC_configuration/sextractor_configuration_files/sextractor1.sex
+
+
+				psfex CFC_configuration/sextractor_result_files/test_psf.cat -c CFC_configuration/sextractor_configuration_files/psfex_config.psfex
+
+				sex $imagen -c CFC_configuration/sextractor_configuration_files/sextractor2.sex
+
+				python CFC_configuration/python_scripts/sex_analisis.py $imagen 
+
+			done
+
+		;;
+esac
+
+
