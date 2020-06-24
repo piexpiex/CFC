@@ -33,6 +33,7 @@ except:
 #############################
 
 fichero=sys.argv[1]
+
 try:
 	id_table=open(sys.argv[2])
 
@@ -62,18 +63,17 @@ try:
 	fich_reducido_id=images[:,3]
 	hdulist = fits.open(fichero)
 	fichero=delete_folder_name(fichero)
-	print(fichero)
-	print(fich_reducido_id[5])
 	name_filter=filter_id[np.where(fich_reducido_id==fichero+'\n')]#hdulist[0].header['INSFLNAM']
 	name_filter=name_filter[0]
 	CAHA_ID=caha_id[np.where(fich_reducido_id==fichero+'\n')]
 
 except:
+	hdulist = fits.open(fichero)
 	name_filter=hdulist[0].header['INSFLNAM']
 	CAHA_ID='X'
 MJD=hdulist[0].header['MJD-OBS']
 color=search_name(name_filter)
-print('name_filter',name_filter,color)
+
 data = hdulist[0].data
 if color=='X':
 	print('no SDSS filter')
@@ -149,8 +149,6 @@ Nobjetos=0
 
 listaok=np.array([1.0]*len(objects))
 
-print('initial number of objects',len(objects))
-
 for i in range(len(objects)):
 	if objects[i,FLUX_MAX]<=0 or objects[i,FLUX_RADIUS]<=0 or objects[i,FWHM_IMAGE]<=0 or objects[i,FLUX_PSF]<=0:
 		listaok[i]=0
@@ -169,9 +167,6 @@ for i in range(len(objects)):
 	if listaok[i]==1.0:
 		Nobjetos=Nobjetos+1
 		listaok[i]=1.0
-		
-
-print('number of identify objects',len(listaok[np.where(listaok==1.0)]))
 
 flux_coef=objects[:,FLUX_MAX]/objects[:,FLUX_PSF]
 C_1=np.where(listaok==1)
@@ -196,10 +191,8 @@ FLUX_step=29000
 FLUX_step_d=2000
 FLUX_SATURATION_1=60000
 while abs(FLUX_step_d)>100 and FLUX_step<65000: # Pearson r criteria
-	print(FLUX_step,FLUX_step_d)
 	FLUX_step=FLUX_step+FLUX_step_d
 	r=ajuste_lineal(psf_flux[np.where(max_flux<FLUX_step)],max_flux[np.where(max_flux<FLUX_step)])[4]
-	print(r)
 	if FLUX_step>61000:
 		FLUX_step=60000
 		break
@@ -218,7 +211,6 @@ A0=ajuste_lineal(psf_flux[np.where(max_flux<FLUX_step)],max_flux[np.where(max_fl
 while abs(FLUX_step_d)>100 and FLUX_step<65000: # Slope criteria
 	FLUX_step=FLUX_step+FLUX_step_d
 	A=ajuste_lineal(psf_flux[np.where(max_flux<FLUX_step)],max_flux[np.where(max_flux<FLUX_step)])[0]
-	print(FLUX_step,FLUX_step_d,A0,A)
 	if FLUX_step>61000:
 		FLUX_step=60000
 		break
@@ -231,8 +223,46 @@ while abs(FLUX_step_d)>100 and FLUX_step<65000: # Slope criteria
 
 FLUX_SATURATION_2=FLUX_step-FLUX_step_d	
 FLUX_SATURATION=min([FLUX_SATURATION_1,FLUX_SATURATION_2])-2*flux_sigma2
+
+FLUX_step=900
+FLUX_step_d=10
+FLUX_DETECTION_1=0
+while abs(FLUX_step_d)>1 and FLUX_step>0: # Pearson r criteria
+	FLUX_step=FLUX_step-FLUX_step_d
+	r=ajuste_lineal(psf_flux[np.where((max_flux<FLUX_SATURATION) & (max_flux>FLUX_step))],max_flux[np.where((max_flux<FLUX_SATURATION) & (max_flux>FLUX_step))])[4]
+	if FLUX_step<0:
+		FLUX_step=0
+		break
+	if r>=0.98:
+		continue
+	if r<0.98:
+		FLUX_DETECTION_1=FLUX_step
+		FLUX_step=FLUX_step+FLUX_step_d
+		FLUX_step_d=FLUX_step_d/2
+
+FLUX_DETECTION_1=FLUX_step+FLUX_step_d	
+FLUX_step=900
+FLUX_step_d=10
+FLUX_DETECTION_2=0
+A0=ajuste_lineal(psf_flux[np.where((max_flux<FLUX_SATURATION) & (max_flux>FLUX_step))],max_flux[np.where((max_flux<FLUX_SATURATION) & (max_flux>FLUX_step))])[0]
+while abs(FLUX_step_d)>1 and FLUX_step>0: # Slope criteria
+	FLUX_step=FLUX_step-FLUX_step_d
+	A=ajuste_lineal(psf_flux[np.where((max_flux<FLUX_SATURATION) & (max_flux>FLUX_step))],max_flux[np.where((max_flux<FLUX_SATURATION) & (max_flux>FLUX_step))])[0]
+	if FLUX_step<0:
+		FLUX_step=0
+		break
+	if A>=A0/1.01:
+		continue
+	if A<A0/1.01:
+		FLUX_DETECTION_2=FLUX_step
+		FLUX_step=FLUX_step+FLUX_step_d
+		FLUX_step_d=FLUX_step_d/2
+
+FLUX_DETECTION_2=FLUX_step+FLUX_step_d	
+FLUX_DETECTION=max([FLUX_DETECTION_1,FLUX_DETECTION_2])+2*flux_sigma2
+
 for i in range(len(objects)):
-	if objects[i][FLUX_MAX]>FLUX_SATURATION:
+	if objects[i][FLUX_MAX]>FLUX_SATURATION or objects[i][FLUX_MAX]<FLUX_DETECTION:
 		listaok[i]=2
 
 plt.figure(figsize=(22.0,7.0))
@@ -252,7 +282,8 @@ plt.yscale('log')
 plt.xscale('log')
 #plt.legend(framealpha=0.1)
 
-plt.savefig('figures_folder/'+fichero[0:len(fichero)-5]+'_flux_selection.pdf')
+plt.savefig('figures_folder/'+'_flux_selection.pdf')
+#plt.savefig('figures_folder/'+fichero[0:len(fichero)-5]+'_flux_selection.pdf')
 
 
 ############################
@@ -289,19 +320,11 @@ c13 = fits.Column(name='SPREAD_MODEL',array=objects[:,SPREAD_MODEL], format='E')
 t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13],name='valores')
 t.writeto('CFC_configuration/Intermediate_files/parametros.fits',overwrite=True)
 
-#objects[i,MAG_ISO] #magnitud sextractor
-#INSFLID #numero del filtro
-#INSFLNAM #nombre del filtro (en este caso SDSS r)
-# magnitudes de APASS V,B,g,r,i seguido de mag o err
-#rmag y rerr en este caso
-
 hdul = fits.open('CFC_configuration/Intermediate_files/parametros.fits')
 delta=hdul['VALORES']
 t = Table.read(delta)
 t.write('CFC_configuration/Intermediate_files/parametros.vot', table_id='updated_table', format='votable',overwrite=True)
 
-#cross match (en open nuestra tabla)
-#V/147/sdss12 #II/336/apass9 #hay que ponerlo para que intente SDSS y si no APASS
 sdss_key=0
 catalog = XMatch.query(cat1=open('CFC_configuration/Intermediate_files/parametros.vot'),
                          cat2='vizier:V/147/sdss12',
@@ -309,8 +332,7 @@ catalog = XMatch.query(cat1=open('CFC_configuration/Intermediate_files/parametro
                          colRA1='ALPHA', colDec1='DELTA')
 
 if len(catalog)==0:
-	print('apa')
-	exit()	
+	print('No SSDS field, working with APASS DR9 catalog')
 	catalog = XMatch.query(cat1=open('CFC_configuration/Intermediate_files/parametros.vot'),
                          cat2='vizier:II/336/apass9',
                          max_distance=2 * u.arcsec,
@@ -375,12 +397,14 @@ if sdss_key==1:
 		limit_detection=25
 		limit_sat=0
 	elif color=='v'or color=='V':
+		exit()
 		pmag=catalog['Vmag']
 		e_pmag=catalog['e_Vmag']
 		name_mag='APASS Vmag'
 		limit_detection=25
 		limit_sat=0
 	elif color=='b'or color=='B':
+		exit()
 		pmag=catalog['Bmag']
 		e_pmag=catalog['e_Bmag']
 		name_mag='APASS Bmag'
@@ -542,9 +566,6 @@ if Z[4]>=0.98:
 	max_pmag=max(Y)
 
 	extrapolation_mag=np.array(['A']*len(final_objects))
-	#A: La magnitud de la detección cae dentro del rango de magnitudes utilizado en la calibración.
-	#B: La magnitud es más débil que cualquiera de las fuentes utilizadas en la calibración
-	#C: La magnitud es más brillante que cualquiera de las fuentes utlizadas en la calibración. 
 	for i in range(len(final_objects)):
 		if calibration_mag[i]>max_pmag:
 			extrapolation_mag[i]='C'
@@ -558,10 +579,10 @@ if Z[4]>=0.98:
 	c2 = fits.Column(name='Detection_ID', array=DETECTION_ID, format='50A')
 	c3 = fits.Column(name='MJD', array=np.array(len(final_objects[:,0])*[str(MJD)]), format='12A')
 	c4 = fits.Column(name='SNR_WIN',array=final_objects[:,SNR_WIN], format='E')
-	c5 = fits.Column(name='RAJ2000 (deg)',array=final_objects[:,ALPHA_J2000], format='E')
-	c6 = fits.Column(name='DEJ2000 (deg)',array=final_objects[:,DELTA_J2000], format='E')
-	c7 = fits.Column(name='e_RAJ2000 (arcsec)',array=3600*final_objects[:,ERRX2_WORLD]**0.5, format='E')
-	c8 = fits.Column(name='e_DEJ2000 (arcsec)',array=3600*final_objects[:,ERRY2_WORLD]**0.5, format='E')
+	c5 = fits.Column(name='RAJ2000 (deg)',array=np.around(final_objects[:,ALPHA_J2000],5), format='E')
+	c6 = fits.Column(name='DEJ2000 (deg)',array=np.around(final_objects[:,DELTA_J2000],5), format='E')
+	c7 = fits.Column(name='e_RAJ2000 (arcsec)',array=np.around(3600*final_objects[:,ERRX2_WORLD]**0.5,5), format='E')
+	c8 = fits.Column(name='e_DEJ2000 (arcsec)',array=np.around(3600*final_objects[:,ERRY2_WORLD]**0.5,5), format='E')
 	RA=Angle(final_objects[:,ALPHA_J2000]* u.deg)
 	DEC=Angle(final_objects[:,DELTA_J2000]* u.deg)
 	e_RA=Angle(final_objects[:,ERRX2_WORLD]**0.5* u.deg)
@@ -570,18 +591,18 @@ if Z[4]>=0.98:
 	c10 = fits.Column(name='DEJ2000 (dd:mm:ss)', array=DEC.to_string(unit=u.deg, sep=(':',':')), format='20A')
 	c11 = fits.Column(name='e_RAJ2000 (hh:mm:ss)', array=e_RA.to_string(unit=u.hourangle, sep=(':',':')), format='20A')
 	c12 = fits.Column(name='e_DEJ2000 (dd:mm:ss)', array=e_DEC.to_string(unit=u.deg, sep=(':',':')), format='20A')
-	c13 = fits.Column(name='MAG',array=calibration_mag, format='E')
-	c14 = fits.Column(name='e_MAG',array=calibration_mag_error, format='E')
-	c15 = fits.Column(name='MAG_sex',array=final_objects[:,MAG_PSF], format='E')
-	c16 = fits.Column(name='e_MAG_sex',array=final_objects[:,MAGERR_PSF], format='E')
+	c13 = fits.Column(name='MAG',array=np.around(calibration_mag,3), format='E')
+	c14 = fits.Column(name='e_MAG',array=np.around(calibration_mag_error,3), format='E')
+	c15 = fits.Column(name='MAG_sex',array=np.around(final_objects[:,MAG_PSF],3), format='E')
+	c16 = fits.Column(name='e_MAG_sex',array=np.around(final_objects[:,MAGERR_PSF],3), format='E')
 	c17 = fits.Column(name='cl_SDSS',array=cl_SDSS, format='E')
-	c18 = fits.Column(name='SPREAD_MODEL',array=SM_flag, format='E')
+	c18 = fits.Column(name='SPREAD_MODEL',array=np.around(SM_flag,2), format='E')
 	c19 = fits.Column(name='flag_calib',array=extrapolation_mag, format='3A')
 	c20 = fits.Column(name='Filter',array=np.array([name_filter]*len(final_objects[:,0])), format='10A')
-	c21 = fits.Column(name='Elongation',array=final_objects[:,ELONGATION], format='E')
-	c22 = fits.Column(name='FWHM (arcsec)',array=3600*final_objects[:,FWHM_WORLD], format='E')
+	c21 = fits.Column(name='Elongation',array=np.around(final_objects[:,ELONGATION],2), format='E')
+	c22 = fits.Column(name='FWHM (arcsec)',array=np.around(3600*final_objects[:,FWHM_WORLD],2), format='E')
 	
 	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22],name='catalog')
-	t.writeto('catalogs_folder/'+fichero[6:len(fichero)-5]+'_catalog.fits',overwrite=True)
+	t.writeto('catalogs_folder/'+fichero[0:len(fichero)-5]+'_catalog.fits',overwrite=True)
 
 

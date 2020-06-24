@@ -4,16 +4,28 @@ import os
 ### Folders creation ###
 ########################
 
+print('making directories')
 try:
 	os.mkdir('logouts_folder')
-	os.mkdir('figures_folder')
-	os.mkdir('catalogs_folder')
-	os.mkdir('CFC_configuration/Intermediate_files')
-	os.mkdir('CFC_configuration/sextractor_result_files')
-	print('making directories')
-	print('starting the analysis')
 except:
-	print('starting the analysis')
+	pass
+try:
+	os.mkdir('figures_folder')
+except:
+	pass
+try:
+	os.mkdir('catalogs_folder')
+except:
+	pass
+try:
+	os.mkdir('CFC_configuration/Intermediate_files')
+except:
+	pass
+try:
+	os.mkdir('CFC_configuration/sextractor_result_files')
+except:
+	pass	
+print('starting the analysis')
 
 ######################################
 ### Creating the logout data table ###
