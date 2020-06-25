@@ -78,7 +78,7 @@ MEMORY_BUFSIZE  1800            # number of lines in buffer
  
 #----------------------------- Miscellaneous ---------------------------------
 WEIGHT_TYPE NONE
-                                                                                                                                                            
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
 VERBOSE_TYPE    NORMAL          # can be "QUIET", "NORMAL" or "FULL"
 
 
