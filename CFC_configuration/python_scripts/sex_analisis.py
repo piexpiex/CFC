@@ -62,7 +62,6 @@ try:
 	programa_id=images[:,2] 
 	fich_reducido_id=images[:,3]
 	hdulist = fits.open(fichero)
-	fichero=delete_folder_name(fichero)
 	name_filter=filter_id[np.where(fich_reducido_id==fichero+'\n')]#hdulist[0].header['INSFLNAM']
 	name_filter=name_filter[0]
 	CAHA_ID=caha_id[np.where(fich_reducido_id==fichero+'\n')]
@@ -73,6 +72,7 @@ except:
 	CAHA_ID='X'
 MJD=hdulist[0].header['MJD-OBS']
 color=search_name(name_filter)
+fichero=delete_folder_name(fichero)
 
 data = hdulist[0].data
 if color=='X':
@@ -180,8 +180,11 @@ flux_mean2=np.mean(flux_coef[C_2])
 flux_sigma2=np.std(flux_coef[C_2])
 
 for i in range(len(objects)):
-	if listaok[i]==1:
+	if listaok[i]==1 and objects[i,FLUX_MAX]>10**3:
 		if flux_coef[i]>flux_mean2+3*flux_sigma2:
+			listaok[i]=-1
+	elif listaok[i]==1 and objects[i,FLUX_MAX]<10**3:
+		if flux_coef[i]>flux_mean2+2*flux_sigma2:
 			listaok[i]=-1
 
 
@@ -222,47 +225,10 @@ while abs(FLUX_step_d)>100 and FLUX_step<65000: # Slope criteria
 		FLUX_step_d=FLUX_step_d/2
 
 FLUX_SATURATION_2=FLUX_step-FLUX_step_d	
-FLUX_SATURATION=min([FLUX_SATURATION_1,FLUX_SATURATION_2])-2*flux_sigma2
-
-FLUX_step=900
-FLUX_step_d=10
-FLUX_DETECTION_1=0
-while abs(FLUX_step_d)>1 and FLUX_step>0: # Pearson r criteria
-	FLUX_step=FLUX_step-FLUX_step_d
-	r=ajuste_lineal(psf_flux[np.where((max_flux<FLUX_SATURATION) & (max_flux>FLUX_step))],max_flux[np.where((max_flux<FLUX_SATURATION) & (max_flux>FLUX_step))])[4]
-	if FLUX_step<0:
-		FLUX_step=0
-		break
-	if r>=0.98:
-		continue
-	if r<0.98:
-		FLUX_DETECTION_1=FLUX_step
-		FLUX_step=FLUX_step+FLUX_step_d
-		FLUX_step_d=FLUX_step_d/2
-
-FLUX_DETECTION_1=FLUX_step+FLUX_step_d	
-FLUX_step=900
-FLUX_step_d=10
-FLUX_DETECTION_2=0
-A0=ajuste_lineal(psf_flux[np.where((max_flux<FLUX_SATURATION) & (max_flux>FLUX_step))],max_flux[np.where((max_flux<FLUX_SATURATION) & (max_flux>FLUX_step))])[0]
-while abs(FLUX_step_d)>1 and FLUX_step>0: # Slope criteria
-	FLUX_step=FLUX_step-FLUX_step_d
-	A=ajuste_lineal(psf_flux[np.where((max_flux<FLUX_SATURATION) & (max_flux>FLUX_step))],max_flux[np.where((max_flux<FLUX_SATURATION) & (max_flux>FLUX_step))])[0]
-	if FLUX_step<0:
-		FLUX_step=0
-		break
-	if A>=A0/1.01:
-		continue
-	if A<A0/1.01:
-		FLUX_DETECTION_2=FLUX_step
-		FLUX_step=FLUX_step+FLUX_step_d
-		FLUX_step_d=FLUX_step_d/2
-
-FLUX_DETECTION_2=FLUX_step+FLUX_step_d	
-FLUX_DETECTION=max([FLUX_DETECTION_1,FLUX_DETECTION_2])+2*flux_sigma2
+FLUX_SATURATION=min([FLUX_SATURATION_1,FLUX_SATURATION_2])-1*flux_sigma2
 
 for i in range(len(objects)):
-	if objects[i][FLUX_MAX]>FLUX_SATURATION or objects[i][FLUX_MAX]<FLUX_DETECTION:
+	if objects[i][FLUX_MAX]>FLUX_SATURATION:
 		listaok[i]=2
 
 plt.figure(figsize=(22.0,7.0))
@@ -282,8 +248,7 @@ plt.yscale('log')
 plt.xscale('log')
 #plt.legend(framealpha=0.1)
 
-plt.savefig('figures_folder/'+'_flux_selection.pdf')
-#plt.savefig('figures_folder/'+fichero[0:len(fichero)-5]+'_flux_selection.pdf')
+plt.savefig('figures_folder/'+fichero[0:len(fichero)-5]+'_flux_selection.pdf')
 
 
 ############################
