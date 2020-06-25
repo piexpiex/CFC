@@ -13,8 +13,9 @@ case  $arg in
 		do 
 			if [ $line -gt 0 ];
 				then 
-					bh=${f4#* } 
-					imagen=$f3/$bh
+					file=${f4#* } 
+					folder=${f3#* } 
+					imagen=science-imaging/$folder/$file
 
 						python CFC_configuration/python_scripts/size.py $imagen
 
