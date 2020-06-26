@@ -27,11 +27,17 @@ it is recommended to use *[filabres][5]* for a correct reduction and calibration
 
 [5]: https://github.com/nicocardiel/filabres
 
---In pocessing--
+The program works by depositing the CFC.sh file, the CFC_configuration folder and a csv file with the columns: caha_id, filter_name, program and reduction_file (for example "filabres_tree.csv") and using the following command in the UNIX terminal:
+
+sh CFC.sh filabres_tree.csv
 
 ## Images with own reduction and astrometric calibration
 
-The program works by depositing the CFC.sh file, the CFC_configuration folder and a folder with the images to calibrate (for example "files") and using the following command in the UNIX terminal "sh CFC.sh files". The images have to be reduced and calibrated astrometrically.
+The program works by depositing the CFC.sh file, the CFC_configuration folder and a folder with the images to calibrate (for example "files") and using the following command in the UNIX terminal:
+
+sh CFC.sh files
+
+The images have to be reduced and calibrated astrometrically.
 
 # Image processing
 
