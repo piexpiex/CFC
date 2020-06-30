@@ -16,7 +16,3 @@ Calibration process
 
 ...
 
-Results
-=======
-
-...
