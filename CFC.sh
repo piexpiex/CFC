@@ -1,6 +1,6 @@
  #!/bin/bash
 
-python CFC_configuration/python_scripts/setup.py
+python CFC_configuration/python_scripts/setup.py $verbosity
 
 arg=$1
 
@@ -13,9 +13,8 @@ case  $arg in
 		do 
 			if [ $line -gt 0 ];
 				then 
-					file=${f4#* } 
-					folder=${f3#* } 
-					imagen=science-imaging/$folder/$file
+					bh=${f4#* } 
+					imagen=$f3/$bh
 
 						python CFC_configuration/python_scripts/size.py $imagen
 
