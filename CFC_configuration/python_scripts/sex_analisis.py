@@ -121,8 +121,11 @@ ERRY2_WORLD=26#  27 ERRY2_WORLD            Variance of position along Y-WORLD (d
 
 lista=[]
 objects=[]
+sex_catalog=open('catalogs_folder/SExtractor_catalogs/'+fichero[0:len(fichero)-5]+'_sex.cat','w')
+
 
 for linea in catalogo:
+	sex_catalog.write(linea)
 	if linea[0]=='#':
 		continue
 	else:
@@ -143,7 +146,9 @@ for linea in catalogo:
 		objects.append(lista)
 		lista=[]
 objects=np.array(objects)
+total_objects=objects.copy()
 
+sex_catalog.close
 
 Nobjetos=0
 
@@ -359,8 +364,8 @@ if sdss_key==1:
 		pmag=catalog['rpmag']
 		e_pmag=catalog['e_rpmag']
 		name_mag='APASS rmag'
-		limit_detection=25
-		limit_sat=0
+		limit_detection=22.70
+		limit_sat=14
 	elif color=='v'or color=='V':
 		exit()
 		pmag=catalog['Vmag']
@@ -379,15 +384,16 @@ if sdss_key==1:
 		pmag=catalog['gpmag']
 		e_pmag=catalog['e_gpmag']
 		name_mag='APASS gmag'
-		limit_detection=25
-		limit_sat=0
+		limit_detection=23.13
+		limit_sat=14
 	elif color=='i'or color=='I':
 		pmag=catalog['ipmag']
 		e_pmag=catalog['e_ipmag']
 		name_mag='APASS imag'
-		limit_detection=25
-		limit_sat=0
-
+		limit_detection=22.2
+		limit_sat=14
+if len(pmag)<6:
+	exit()	
 lista=[mag_sex,magerr_sex,ellongation,ellipticity,FWHM,pmag,e_pmag,SPREAD_VALUE]
 print('number of skymatch objects',len(pmag))
 
@@ -568,6 +574,51 @@ if Z[4]>=0.98:
 	c22 = fits.Column(name='FWHM (arcsec)',array=np.around(3600*final_objects[:,FWHM_WORLD],2), format='E')
 	
 	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22],name='catalog')
-	t.writeto('catalogs_folder/'+fichero[0:len(fichero)-5]+'_catalog.fits',overwrite=True)
+	t.writeto('catalogs_folder/CFC_catalogs/'+fichero[0:len(fichero)-5]+'_catalog.fits',overwrite=True)
 
 
+
+
+if Z[4]>=0.98:
+	calibration_mag=Z[1]+Z[0]*final_objects[:,17]
+	calibration_mag_error=abs(Z[3])+abs(Z[2]*final_objects[:,17])+abs(Z[0]*final_objects[:,18])
+
+	min_pmag=min(Y)
+	max_pmag=max(Y)
+
+	extrapolation_mag=np.array(['A']*len(final_objects))
+	for i in range(len(final_objects)):
+		if calibration_mag[i]>max_pmag:
+			extrapolation_mag[i]='C'
+		elif calibration_mag[i]<min_pmag:
+			extrapolation_mag[i]='B'
+	c1 = fits.Column(name='Image_identifier', array=np.array(len(total_objects[:,0])*['CAHA_CAFOS_BBI_DR1_'+str(CAHA_ID[0])]), format='50A')
+
+	c2 = fits.Column(name='SNR_WIN',array=total_objects[:,SNR_WIN], format='E')
+	c3 = fits.Column(name='RAJ2000 (deg)',array=np.around(total_objects[:,ALPHA_J2000],5), format='E')
+	c4 = fits.Column(name='DEJ2000 (deg)',array=np.around(total_objects[:,DELTA_J2000],5), format='E')
+	c5 = fits.Column(name='e_RAJ2000 (arcsec)',array=np.around(3600*total_objects[:,ERRX2_WORLD]**0.5,5), format='E')
+	c6 = fits.Column(name='e_DEJ2000 (arcsec)',array=np.around(3600*total_objects[:,ERRY2_WORLD]**0.5,5), format='E')
+	RA=Angle(total_objects[:,ALPHA_J2000]* u.deg)
+	DEC=Angle(total_objects[:,DELTA_J2000]* u.deg)
+	e_RA=Angle(total_objects[:,ERRX2_WORLD]**0.5* u.deg)
+	e_DEC=Angle(total_objects[:,ERRY2_WORLD]**0.5* u.deg)
+	c7 = fits.Column(name='RAJ2000 (hh:mm:ss)', array=RA.to_string(unit=u.hourangle, sep=(':',':')), format='20A')
+	c8 = fits.Column(name='DEJ2000 (dd:mm:ss)', array=DEC.to_string(unit=u.deg, sep=(':',':')), format='20A')
+	c9 = fits.Column(name='e_RAJ2000 (hh:mm:ss)', array=e_RA.to_string(unit=u.hourangle, sep=(':',':')), format='20A')
+	c10 = fits.Column(name='e_DEJ2000 (dd:mm:ss)', array=e_DEC.to_string(unit=u.deg, sep=(':',':')), format='20A')
+	c11 = fits.Column(name='MAG',array=np.around(Z[1]+Z[0]*total_objects[:,17],3), format='E')
+	c12 = fits.Column(name='e_MAG',array=np.around(abs(Z[3])+abs(Z[2]*total_objects[:,17])+abs(Z[0]*total_objects[:,18]),3), format='E')
+	c13 = fits.Column(name='MAG_sex',array=np.around(total_objects[:,MAG_PSF],3), format='E')
+	c14 = fits.Column(name='e_MAG_sex',array=np.around(total_objects[:,MAGERR_PSF],3), format='E')
+	c15 = fits.Column(name='SPREAD_MODEL',array=np.around(total_objects[:,SPREAD_MODEL],2), format='E')
+	c16 = fits.Column(name='Filter',array=np.array([name_filter]*len(total_objects[:,0])), format='10A')
+	c17 = fits.Column(name='Elongation',array=np.around(total_objects[:,ELONGATION],2), format='E')
+	c18 = fits.Column(name='FWHM (arcsec)',array=np.around(3600*total_objects[:,FWHM_WORLD],2), format='E')
+
+	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19],name='catalog')
+	t.writeto('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.fits',overwrite=True)
+
+
+
+	

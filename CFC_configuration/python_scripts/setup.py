@@ -1,4 +1,29 @@
 import os
+import sys
+from read_files import *
+#################
+### Verbosity ###
+#################
+
+
+
+try:
+	verb=str(sys.argv[1])
+except:
+	verb="NORMAL"
+
+verbosity="NORMAL"
+if verb=="NORMAL" or verb=="normal":
+	verbosity="NORMAL"
+if verb=="FULL" or verb=="full":
+	verbosity="FULL"
+if verb=="QUIET" or verb=="quiet":
+	verbosity="QUIET"
+
+
+_=write_files('CFC_configuration/sextractor_configuration_files/sextractor1.sex','VERBOSE_TYPE',verbosity+'\n')
+_=write_files('CFC_configuration/sextractor_configuration_files/sextractor2.sex','VERBOSE_TYPE',verbosity+'\n')
+_=write_files('CFC_configuration/sextractor_configuration_files/psfex_config.psfex','VERBOSE_TYPE',verbosity+'\n')
 
 ########################
 ### Folders creation ###
@@ -15,6 +40,18 @@ except:
 	pass
 try:
 	os.mkdir('catalogs_folder')
+except:
+	pass
+try:
+	os.mkdir('catalogs_folder/SExtractor_catalogs')
+except:
+	pass
+try:
+	os.mkdir('catalogs_folder/CFC_catalogs')
+except:
+	pass
+try:
+	os.mkdir('catalogs_folder/CFC_sources')
 except:
 	pass
 try:
