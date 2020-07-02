@@ -14,7 +14,8 @@ case  $arg in
 			if [ $line -gt 0 ];
 				then 
 					bh=${f4#* } 
-					imagen=science-imaging/$f3/$bh
+					fh=${f3#* } 
+					imagen=science-imaging/$fh/$bh
 
 						python CFC_configuration/python_scripts/size.py $imagen
 
