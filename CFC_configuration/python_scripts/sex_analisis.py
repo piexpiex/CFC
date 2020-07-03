@@ -62,17 +62,19 @@ try:
 	programa_id=images[:,2] 
 	fich_reducido_id=images[:,3]
 	hdulist = fits.open(fichero)
+	fichero=delete_folder_name(fichero)
 	name_filter=filter_id[np.where(fich_reducido_id==fichero+'\n')]#hdulist[0].header['INSFLNAM']
 	name_filter=name_filter[0]
 	CAHA_ID=caha_id[np.where(fich_reducido_id==fichero+'\n')]
 
 except:
 	hdulist = fits.open(fichero)
+	fichero=delete_folder_name(fichero)
 	name_filter=hdulist[0].header['INSFLNAM']
 	CAHA_ID='X'
 MJD=hdulist[0].header['MJD-OBS']
 color=search_name(name_filter)
-fichero=delete_folder_name(fichero)
+
 
 data = hdulist[0].data
 if color=='X':
@@ -259,8 +261,13 @@ plt.savefig('figures_folder/'+fichero[0:len(fichero)-5]+'_flux_selection.pdf')
 ############################
 ######### Skymatch #########
 ############################
-
+numeros=objects[:,NUMBER]
 objects=objects[np.where(listaok==1)]
+source_flag=[3.0]*len(listaok)
+source_flag=np.array(source_flag)
+source_flag[np.where(listaok==0)]=0
+source_flag[np.where(listaok==-1)]=1
+source_flag[np.where(listaok==2)]=2
 
 SM_flag=objects[:,SPREAD_MODEL]
 #for i in range(len(objects)):
@@ -316,6 +323,9 @@ if len(catalog)<6:
 
 #Columns selection
 NUMBER_XMATCH=catalog['NUMBER']
+for j in range(len(NUMBER_XMATCH)):
+	source_flag[int(NUMBER_XMATCH[j]-1)]=4
+	
 mag_sex=catalog['MAG_PSF']
 magerr_sex=catalog['MAGERR_PSF']
 ellongation=catalog['ELONGATION']
@@ -394,7 +404,7 @@ if sdss_key==1:
 		limit_sat=14
 if len(pmag)<6:
 	exit()	
-lista=[mag_sex,magerr_sex,ellongation,ellipticity,FWHM,pmag,e_pmag,SPREAD_VALUE]
+lista=[mag_sex,magerr_sex,ellongation,ellipticity,FWHM,pmag,e_pmag,SPREAD_VALUE,NUMBER_XMATCH]
 print('number of skymatch objects',len(pmag))
 
 plt.figure(figsize=(22.0,7.0))
@@ -424,6 +434,7 @@ FWHM=lista[4]
 pmag=lista[5]
 e_pmag=lista[6]
 SPREAD_VALUE=lista[7]
+NUMBER_XMATCH=lista[8]
 
 #Morphology selection
 
@@ -451,8 +462,9 @@ magerr_sex=lista[1]
 pmag=lista[5]
 e_pmag=lista[6]
 SPREAD_VALUE=lista[7]
-
-
+NUMBER_XMATCH=lista[8]
+for j in range(len(NUMBER_XMATCH)):
+	source_flag[int(NUMBER_XMATCH[j]-1)]=5
 
 print('number of objects after morphology criteria',len(mag_sex))
 
@@ -471,6 +483,7 @@ if sdss_key==0:
 	pmag=lista[5]
 	e_pmag=lista[6]
 	SPREAD_VALUE=lista[7]
+	NUMBER_XMATCH=lista[8]
 	print('number of objects with SDSS class=6 & q mode=1.0 ',len(mag_sex))
 	
 
@@ -478,13 +491,15 @@ if len(mag_sex)<6:
 	print('Insufficient number of objects for photometric calibration')
 	exit()
 	
-#if abs(max(mag_sex)-min(mag_sex))<2:
-#	print('Small magnitude range,photometric calibration may not be correct')
+
 
 #Photometry calibration
 
 
 X,Y,Z=sigma_c(X=mag_sex,Y=pmag,n_sigma=2)
+for j in range(len(X)):
+	if np.where(mag_sex==X[j])==np.where(pmag==Y[j]):
+		source_flag[int(NUMBER_XMATCH[np.where(mag_sex==X[j])]-1)]=6
 N_C=len(X)
 plt.plot(X,Y,'r.',label='Calibration objects ('+str(N_C)+')')
 plt.plot(mag_sex,Z[1]+Z[0]*mag_sex,'r',label=name_mag+'={0:.3g}'.format(Z[0])+' × MAG PSF + {0:.3g}'.format(Z[1]) + ' (r={0:.3g}'.format(Z[4])+')')
@@ -550,18 +565,18 @@ if Z[4]>=0.98:
 	c2 = fits.Column(name='Detection_ID', array=DETECTION_ID, format='50A')
 	c3 = fits.Column(name='MJD', array=np.array(len(final_objects[:,0])*[str(MJD)]), format='12A')
 	c4 = fits.Column(name='SNR_WIN',array=final_objects[:,SNR_WIN], format='E')
-	c5 = fits.Column(name='RAJ2000 (deg)',array=np.around(final_objects[:,ALPHA_J2000],5), format='E')
-	c6 = fits.Column(name='DEJ2000 (deg)',array=np.around(final_objects[:,DELTA_J2000],5), format='E')
-	c7 = fits.Column(name='e_RAJ2000 (arcsec)',array=np.around(3600*final_objects[:,ERRX2_WORLD]**0.5,5), format='E')
-	c8 = fits.Column(name='e_DEJ2000 (arcsec)',array=np.around(3600*final_objects[:,ERRY2_WORLD]**0.5,5), format='E')
+	c5 = fits.Column(name='RAJ20001', unit='deg',array=np.around(final_objects[:,ALPHA_J2000],5), format='E')
+	c6 = fits.Column(name='DEJ20001', unit='deg',array=np.around(final_objects[:,DELTA_J2000],5), format='E')
+	c7 = fits.Column(name='e_RAJ20001', unit='arcsec',array=np.around(3600*final_objects[:,ERRX2_WORLD]**0.5,5), format='E')
+	c8 = fits.Column(name='e_DEJ20001', unit='arcsec',array=np.around(3600*final_objects[:,ERRY2_WORLD]**0.5,5), format='E')
 	RA=Angle(final_objects[:,ALPHA_J2000]* u.deg)
 	DEC=Angle(final_objects[:,DELTA_J2000]* u.deg)
 	e_RA=Angle(final_objects[:,ERRX2_WORLD]**0.5* u.deg)
 	e_DEC=Angle(final_objects[:,ERRY2_WORLD]**0.5* u.deg)
-	c9 = fits.Column(name='RAJ2000 (hh:mm:ss)', array=RA.to_string(unit=u.hourangle, sep=(':',':')), format='20A')
-	c10 = fits.Column(name='DEJ2000 (dd:mm:ss)', array=DEC.to_string(unit=u.deg, sep=(':',':')), format='20A')
-	c11 = fits.Column(name='e_RAJ2000 (hh:mm:ss)', array=e_RA.to_string(unit=u.hourangle, sep=(':',':')), format='20A')
-	c12 = fits.Column(name='e_DEJ2000 (dd:mm:ss)', array=e_DEC.to_string(unit=u.deg, sep=(':',':')), format='20A')
+	c9 = fits.Column(name='RAJ2000', unit='hh:mm:ss', array=RA.to_string(unit=u.hourangle, sep=(':',':')), format='20A')
+	c10 = fits.Column(name='DEJ2000', unit='dd:mm:ss', array=DEC.to_string(unit=u.deg, sep=(':',':')), format='20A')
+	c11 = fits.Column(name='e_RAJ2000', unit='hh:mm:ss', array=e_RA.to_string(unit=u.hourangle, sep=(':',':')), format='20A')
+	c12 = fits.Column(name='e_DEJ2000', unit='dd:mm:ss', array=e_DEC.to_string(unit=u.deg, sep=(':',':')), format='20A')
 	c13 = fits.Column(name='MAG',array=np.around(calibration_mag,3), format='E')
 	c14 = fits.Column(name='e_MAG',array=np.around(calibration_mag_error,3), format='E')
 	c15 = fits.Column(name='MAG_sex',array=np.around(final_objects[:,MAG_PSF],3), format='E')
@@ -571,54 +586,49 @@ if Z[4]>=0.98:
 	c19 = fits.Column(name='flag_calib',array=extrapolation_mag, format='3A')
 	c20 = fits.Column(name='Filter',array=np.array([name_filter]*len(final_objects[:,0])), format='10A')
 	c21 = fits.Column(name='Elongation',array=np.around(final_objects[:,ELONGATION],2), format='E')
-	c22 = fits.Column(name='FWHM (arcsec)',array=np.around(3600*final_objects[:,FWHM_WORLD],2), format='E')
+	c22 = fits.Column(name='FWHM', unit='arcsec',array=np.around(3600*final_objects[:,FWHM_WORLD],2), format='E')
 	
 	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22],name='catalog')
 	t.writeto('catalogs_folder/CFC_catalogs/'+fichero[0:len(fichero)-5]+'_catalog.fits',overwrite=True)
 
 
 
+calibration_mag=Z[1]+Z[0]*final_objects[:,17]
+calibration_mag_error=abs(Z[3])+abs(Z[2]*final_objects[:,17])+abs(Z[0]*final_objects[:,18])
 
-if Z[4]>=0.98:
-	calibration_mag=Z[1]+Z[0]*final_objects[:,17]
-	calibration_mag_error=abs(Z[3])+abs(Z[2]*final_objects[:,17])+abs(Z[0]*final_objects[:,18])
+min_pmag=min(Y)
+max_pmag=max(Y)
 
-	min_pmag=min(Y)
-	max_pmag=max(Y)
+extrapolation_mag=np.array(['A']*len(final_objects))
+for i in range(len(final_objects)):
+	if calibration_mag[i]>max_pmag:
+		extrapolation_mag[i]='C'
+	elif calibration_mag[i]<min_pmag:
+		extrapolation_mag[i]='B'
+c1 = fits.Column(name='Image_identifier', array=np.array(len(total_objects[:,0])*['CAHA_CAFOS_BBI_DR1_'+str(CAHA_ID[0])]), format='50A')
 
-	extrapolation_mag=np.array(['A']*len(final_objects))
-	for i in range(len(final_objects)):
-		if calibration_mag[i]>max_pmag:
-			extrapolation_mag[i]='C'
-		elif calibration_mag[i]<min_pmag:
-			extrapolation_mag[i]='B'
-	c1 = fits.Column(name='Image_identifier', array=np.array(len(total_objects[:,0])*['CAHA_CAFOS_BBI_DR1_'+str(CAHA_ID[0])]), format='50A')
+c2 = fits.Column(name='SNR_WIN',array=total_objects[:,SNR_WIN], format='E')
+c3 = fits.Column(name='RAJ2000', unit='deg',array=np.around(total_objects[:,ALPHA_J2000],5), format='E')
+c4 = fits.Column(name='DEJ2000', unit='deg',array=np.around(total_objects[:,DELTA_J2000],5), format='E')
+c5 = fits.Column(name='e_RAJ2000', unit='arcsec',array=np.around(3600*total_objects[:,ERRX2_WORLD]**0.5,5), format='E')
+c6 = fits.Column(name='e_DEJ2000', unit='arcsec',array=np.around(3600*total_objects[:,ERRY2_WORLD]**0.5,5), format='E')
+RA=Angle(total_objects[:,ALPHA_J2000]* u.deg)
+DEC=Angle(total_objects[:,DELTA_J2000]* u.deg)
+e_RA=Angle(total_objects[:,ERRX2_WORLD]**0.5* u.deg)
+e_DEC=Angle(total_objects[:,ERRY2_WORLD]**0.5* u.deg)
+c7 = fits.Column(name='RAJ20001', unit='hh:mm:ss', array=RA.to_string(unit=u.hourangle, sep=(':',':')), format='20A')
+c8 = fits.Column(name='DEJ20001', unit='dd:mm:ss', array=DEC.to_string(unit=u.deg, sep=(':',':')), format='20A')
+c9 = fits.Column(name='e_RAJ20001', unit='hh:mm:ss', array=e_RA.to_string(unit=u.hourangle, sep=(':',':')), format='20A')
+c10 = fits.Column(name='e_DEJ20001', unit='dd:mm:ss', array=e_DEC.to_string(unit=u.deg, sep=(':',':')), format='20A')
+c11 = fits.Column(name='MAG',array=np.around(Z[1]+Z[0]*total_objects[:,17],3), format='E')
+c12 = fits.Column(name='e_MAG',array=np.around(abs(Z[3])+abs(Z[2]*total_objects[:,17])+abs(Z[0]*total_objects[:,18]),3), format='E')
+c13 = fits.Column(name='MAG_sex',array=np.around(total_objects[:,MAG_PSF],3), format='E')
+c14 = fits.Column(name='e_MAG_sex',array=np.around(total_objects[:,MAGERR_PSF],3), format='E')
+c15 = fits.Column(name='SPREAD_MODEL',array=np.around(total_objects[:,SPREAD_MODEL],2), format='E')
+c16 = fits.Column(name='Filter',array=np.array([name_filter]*len(total_objects[:,0])), format='10A')
+c17 = fits.Column(name='Elongation',array=np.around(total_objects[:,ELONGATION],2), format='E')
+c18 = fits.Column(name='FWHM', unit='arcsec',array=np.around(3600*total_objects[:,FWHM_WORLD],2), format='E')
+c19 = fits.Column(name='source_type',array=source_flag, format='E')
 
-	c2 = fits.Column(name='SNR_WIN',array=total_objects[:,SNR_WIN], format='E')
-	c3 = fits.Column(name='RAJ2000 (deg)',array=np.around(total_objects[:,ALPHA_J2000],5), format='E')
-	c4 = fits.Column(name='DEJ2000 (deg)',array=np.around(total_objects[:,DELTA_J2000],5), format='E')
-	c5 = fits.Column(name='e_RAJ2000 (arcsec)',array=np.around(3600*total_objects[:,ERRX2_WORLD]**0.5,5), format='E')
-	c6 = fits.Column(name='e_DEJ2000 (arcsec)',array=np.around(3600*total_objects[:,ERRY2_WORLD]**0.5,5), format='E')
-	RA=Angle(total_objects[:,ALPHA_J2000]* u.deg)
-	DEC=Angle(total_objects[:,DELTA_J2000]* u.deg)
-	e_RA=Angle(total_objects[:,ERRX2_WORLD]**0.5* u.deg)
-	e_DEC=Angle(total_objects[:,ERRY2_WORLD]**0.5* u.deg)
-	c7 = fits.Column(name='RAJ2000 (hh:mm:ss)', array=RA.to_string(unit=u.hourangle, sep=(':',':')), format='20A')
-	c8 = fits.Column(name='DEJ2000 (dd:mm:ss)', array=DEC.to_string(unit=u.deg, sep=(':',':')), format='20A')
-	c9 = fits.Column(name='e_RAJ2000 (hh:mm:ss)', array=e_RA.to_string(unit=u.hourangle, sep=(':',':')), format='20A')
-	c10 = fits.Column(name='e_DEJ2000 (dd:mm:ss)', array=e_DEC.to_string(unit=u.deg, sep=(':',':')), format='20A')
-	c11 = fits.Column(name='MAG',array=np.around(Z[1]+Z[0]*total_objects[:,17],3), format='E')
-	c12 = fits.Column(name='e_MAG',array=np.around(abs(Z[3])+abs(Z[2]*total_objects[:,17])+abs(Z[0]*total_objects[:,18]),3), format='E')
-	c13 = fits.Column(name='MAG_sex',array=np.around(total_objects[:,MAG_PSF],3), format='E')
-	c14 = fits.Column(name='e_MAG_sex',array=np.around(total_objects[:,MAGERR_PSF],3), format='E')
-	c15 = fits.Column(name='SPREAD_MODEL',array=np.around(total_objects[:,SPREAD_MODEL],2), format='E')
-	c16 = fits.Column(name='Filter',array=np.array([name_filter]*len(total_objects[:,0])), format='10A')
-	c17 = fits.Column(name='Elongation',array=np.around(total_objects[:,ELONGATION],2), format='E')
-	c18 = fits.Column(name='FWHM (arcsec)',array=np.around(3600*total_objects[:,FWHM_WORLD],2), format='E')
-
-	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19],name='catalog')
-	t.writeto('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.fits',overwrite=True)
-
-
-
-	
+t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19],name='catalog')
+t.writeto('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.fits',overwrite=True)
