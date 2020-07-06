@@ -187,13 +187,9 @@ flux_mean2=np.mean(flux_coef[C_2])
 flux_sigma2=np.std(flux_coef[C_2])
 
 for i in range(len(objects)):
-	if listaok[i]==1 and objects[i,FLUX_MAX]>10**3:
+	if listaok[i]==1:
 		if flux_coef[i]>flux_mean2+3*flux_sigma2:
 			listaok[i]=-1
-	elif listaok[i]==1 and objects[i,FLUX_MAX]<10**3:
-		if flux_coef[i]>flux_mean2+2*flux_sigma2:
-			listaok[i]=-1
-
 
 max_flux=objects[np.where(listaok==1),FLUX_MAX]
 psf_flux=objects[np.where(listaok==1),FLUX_PSF]
@@ -237,15 +233,31 @@ FLUX_SATURATION=min([FLUX_SATURATION_1,FLUX_SATURATION_2])-1*flux_sigma2
 for i in range(len(objects)):
 	if objects[i][FLUX_MAX]>FLUX_SATURATION:
 		listaok[i]=2
+		
+#listaok[np.where(listaok==-1)]=1
+C_1=np.where(listaok==1)
+
+flux_mean=np.mean(flux_coef[C_1])
+flux_sigma=np.std(flux_coef[C_1])
+
+C_2=np.where((flux_coef<flux_mean+2*flux_sigma) & (listaok==1))
+
+flux_mean2=np.mean(flux_coef[C_2])
+flux_sigma2=np.std(flux_coef[C_2])
+
+for i in range(len(objects)):
+	if listaok[i]==1:
+		if flux_coef[i]>flux_mean2+3*flux_sigma2:
+			listaok[i]=-1
 
 plt.figure(figsize=(22.0,7.0))
 
 plt.plot(objects[np.where(listaok==2),FLUX_PSF], objects[np.where(listaok==2),FLUX_MAX],'r.')
 plt.plot(objects[np.where(listaok==1),FLUX_PSF], objects[np.where(listaok==1),FLUX_MAX],'g.')
 plt.plot(objects[np.where(listaok==-1),FLUX_PSF], objects[np.where(listaok==-1),FLUX_MAX],'b.')
-plt.plot(objects[np.where(listaok==2),FLUX_PSF][0], objects[np.where(listaok==2),FLUX_MAX][0],'r.',label='saturated')
-plt.plot(objects[np.where(listaok==1),FLUX_PSF][0], objects[np.where(listaok==1),FLUX_MAX][0],'g.',label='Valid')
-plt.plot(objects[np.where(listaok==-1),FLUX_PSF][0], objects[np.where(listaok==-1),FLUX_MAX][0],'b.',label='artifacts')
+plt.plot(objects[np.where(listaok==2),FLUX_PSF][0], objects[np.where(listaok==2),FLUX_MAX][0],'r.',label='Saturated')
+plt.plot(objects[np.where(listaok==1),FLUX_PSF][0], objects[np.where(listaok==1),FLUX_MAX][0],'g.',label='Valid sources')
+plt.plot(objects[np.where(listaok==-1),FLUX_PSF][0], objects[np.where(listaok==-1),FLUX_MAX][0],'b.',label='Artifacts')
 
 #plt.plot([1*10**4,10**5,max(f1)],ffit([1*10**4,10**5,max(f1)]),'k')
 plt.suptitle('FLUX MAX vs FLUX PSF (SNR >=5)')
@@ -253,8 +265,7 @@ plt.ylabel('FLUX MAX [count]')
 plt.xlabel('FLUX PSF [count]')
 plt.yscale('log')
 plt.xscale('log')
-#plt.legend(framealpha=0.1)
-
+plt.legend()
 plt.savefig('figures_folder/'+fichero[0:len(fichero)-5]+'_flux_selection.pdf')
 
 
@@ -565,10 +576,10 @@ if Z[4]>=0.98:
 	c2 = fits.Column(name='Detection_ID', array=DETECTION_ID, format='50A')
 	c3 = fits.Column(name='MJD', array=np.array(len(final_objects[:,0])*[str(MJD)]), format='12A')
 	c4 = fits.Column(name='SNR_WIN',array=final_objects[:,SNR_WIN], format='E')
-	c5 = fits.Column(name='RAJ20001', unit='deg',array=np.around(final_objects[:,ALPHA_J2000],5), format='E')
-	c6 = fits.Column(name='DEJ20001', unit='deg',array=np.around(final_objects[:,DELTA_J2000],5), format='E')
-	c7 = fits.Column(name='e_RAJ20001', unit='arcsec',array=np.around(3600*final_objects[:,ERRX2_WORLD]**0.5,5), format='E')
-	c8 = fits.Column(name='e_DEJ20001', unit='arcsec',array=np.around(3600*final_objects[:,ERRY2_WORLD]**0.5,5), format='E')
+	c5 = fits.Column(name='RA_hms', unit='deg',array=np.around(final_objects[:,ALPHA_J2000],5), format='E')
+	c6 = fits.Column(name='DE_dms', unit='deg',array=np.around(final_objects[:,DELTA_J2000],5), format='E')
+	c7 = fits.Column(name='e_RA_hms', unit='arcsec',array=np.around(3600*final_objects[:,ERRX2_WORLD]**0.5,5), format='E')
+	c8 = fits.Column(name='e_DE_dms', unit='arcsec',array=np.around(3600*final_objects[:,ERRY2_WORLD]**0.5,5), format='E')
 	RA=Angle(final_objects[:,ALPHA_J2000]* u.deg)
 	DEC=Angle(final_objects[:,DELTA_J2000]* u.deg)
 	e_RA=Angle(final_objects[:,ERRX2_WORLD]**0.5* u.deg)
@@ -590,6 +601,8 @@ if Z[4]>=0.98:
 	
 	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22],name='catalog')
 	t.writeto('catalogs_folder/CFC_catalogs/'+fichero[0:len(fichero)-5]+'_catalog.fits',overwrite=True)
+	votable1=Table.read('catalogs_folder/CFC_catalogs/'+fichero[0:len(fichero)-5]+'_catalog.fits')
+	votable1.write('catalogs_folder/CFC_catalogs/'+fichero[0:len(fichero)-5]+'_catalog.xml',table_id='table_id',format='votable',overwrite=True)
 
 
 
@@ -616,10 +629,10 @@ RA=Angle(total_objects[:,ALPHA_J2000]* u.deg)
 DEC=Angle(total_objects[:,DELTA_J2000]* u.deg)
 e_RA=Angle(total_objects[:,ERRX2_WORLD]**0.5* u.deg)
 e_DEC=Angle(total_objects[:,ERRY2_WORLD]**0.5* u.deg)
-c7 = fits.Column(name='RAJ20001', unit='hh:mm:ss', array=RA.to_string(unit=u.hourangle, sep=(':',':')), format='20A')
-c8 = fits.Column(name='DEJ20001', unit='dd:mm:ss', array=DEC.to_string(unit=u.deg, sep=(':',':')), format='20A')
-c9 = fits.Column(name='e_RAJ20001', unit='hh:mm:ss', array=e_RA.to_string(unit=u.hourangle, sep=(':',':')), format='20A')
-c10 = fits.Column(name='e_DEJ20001', unit='dd:mm:ss', array=e_DEC.to_string(unit=u.deg, sep=(':',':')), format='20A')
+c7 = fits.Column(name='RA_hms', unit='hh:mm:ss', array=RA.to_string(unit=u.hourangle, sep=(':',':')), format='20A')
+c8 = fits.Column(name='DE_dms', unit='dd:mm:ss', array=DEC.to_string(unit=u.deg, sep=(':',':')), format='20A')
+c9 = fits.Column(name='e_RA_hms', unit='hh:mm:ss', array=e_RA.to_string(unit=u.hourangle, sep=(':',':')), format='20A')
+c10 = fits.Column(name='e_DE_dms', unit='dd:mm:ss', array=e_DEC.to_string(unit=u.deg, sep=(':',':')), format='20A')
 c11 = fits.Column(name='MAG',array=np.around(Z[1]+Z[0]*total_objects[:,17],3), format='E')
 c12 = fits.Column(name='e_MAG',array=np.around(abs(Z[3])+abs(Z[2]*total_objects[:,17])+abs(Z[0]*total_objects[:,18]),3), format='E')
 c13 = fits.Column(name='MAG_sex',array=np.around(total_objects[:,MAG_PSF],3), format='E')
@@ -632,3 +645,5 @@ c19 = fits.Column(name='source_type',array=source_flag, format='E')
 
 t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19],name='catalog')
 t.writeto('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.fits',overwrite=True)
+votable2=Table.read('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.fits')
+votable2.write('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.xml',table_id='table_id',format='votable',overwrite=True)
