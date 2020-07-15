@@ -75,7 +75,6 @@ except:
 MJD=hdulist[0].header['MJD-OBS']
 color=search_name(name_filter)
 
-
 data = hdulist[0].data
 if color=='X':
 	print('no SDSS filter')
@@ -328,6 +327,7 @@ if len(catalog)==0:
 	sdss_key=1
 
 if len(catalog)<6:
+	print('Insufficient number of objects for photometric calibration')
 	exit()	
 
 
@@ -417,7 +417,7 @@ if len(pmag)<6:
 	exit()	
 lista=[mag_sex,magerr_sex,ellongation,ellipticity,FWHM,pmag,e_pmag,SPREAD_VALUE,NUMBER_XMATCH]
 print('number of skymatch objects',len(pmag))
-
+e_factor=sum(e_pmag)/sum(pmag)
 plt.figure(figsize=(22.0,7.0))
 plt.suptitle('Magnitude calibration')
 plt.xlabel('MAG PSF ('+name_filter+')')
@@ -506,11 +506,18 @@ if len(mag_sex)<6:
 
 #Photometry calibration
 
-
+X_up,Y_up,Z_up=sigma_c(X=mag_sex,Y=pmag+e_pmag,n_sigma=2)
+X_down,Y_down,Z_down=sigma_c(X=mag_sex,Y=pmag-e_pmag,n_sigma=2)
 X,Y,Z=sigma_c(X=mag_sex,Y=pmag,n_sigma=2)
-for j in range(len(X)):
-	if np.where(mag_sex==X[j])==np.where(pmag==Y[j]):
-		source_flag[int(NUMBER_XMATCH[np.where(mag_sex==X[j])]-1)]=6
+e_A=abs(Z_up[2]-Z_down[2])/2 
+e_B=abs(Z_up[3]-Z_down[3])/2 
+
+try:
+	for j in range(len(X)):
+		if np.where(mag_sex==X[j])==np.where(pmag==Y[j]):
+			source_flag[int(NUMBER_XMATCH[np.where(mag_sex==X[j])]-1)]=6
+except:
+	pass
 N_C=len(X)
 plt.plot(X,Y,'r.',label='Calibration objects ('+str(N_C)+')')
 plt.plot(mag_sex,Z[1]+Z[0]*mag_sex,'r',label=name_mag+'={0:.3g}'.format(Z[0])+' × MAG PSF + {0:.3g}'.format(Z[1]) + ' (r={0:.3g}'.format(Z[4])+')')
@@ -549,16 +556,15 @@ if Z[4]>=0.98:
 images_table=open('logouts_folder/data_table.csv','a')
 
 if sdss_key==0:
-	images_table.write(fichero[0:len(fichero)-5] +','+  str(N_C) +','+  str(round(Z[1],3))+','+  str(round(Z[3],3)) +','+  str(round(Z[0],3))+','+  str(round(Z[2],3)) +','+ str(round(Z[4],3)) +','+  state+'\n')
+	images_table.write(fichero[0:len(fichero)-5] +','+  str(N_C) +','+  str(round(Z[1],3))+','+  str(round(e_B,3)) +','+  str(round(Z[0],3))+','+  str(round(e_A,3)) +','+ str(round(Z[4],3)) +','+  state+'\n')
 if sdss_key==1:
-	images_table.write(fichero[0:len(fichero)-5] +','+  str(N_B) +','+  str(round(Z[1],3))+','+  str(round(Z[3],3)) +','+  str(round(Z[0],3))+','+  str(round(Z[2],3)) +','+ str(round(Z[4],3)) +','+  state+'\n')
+	images_table.write(fichero[0:len(fichero)-5] +','+  str(N_B) +','+  str(round(Z[1],3))+','+  str(round(e_B,3)) +','+  str(round(Z[0],3))+','+  str(round(e_A,3)) +','+ str(round(Z[4],3)) +','+  state+'\n')
 
 images_table.close
 ###########
 if Z[4]>=0.98:
 	calibration_mag=Z[1]+Z[0]*final_objects[:,17]
-	calibration_mag_error=abs(Z[3])+abs(Z[2]*final_objects[:,17])+abs(Z[0]*final_objects[:,18])
-
+	calibration_mag_error=(abs(e_B)**2+abs(e_A*final_objects[:,17])**2+abs(Z[0]*final_objects[:,18])**2)**0.5
 	min_pmag=min(Y)
 	max_pmag=max(Y)
 
@@ -606,18 +612,7 @@ if Z[4]>=0.98:
 
 
 
-calibration_mag=Z[1]+Z[0]*final_objects[:,17]
-calibration_mag_error=abs(Z[3])+abs(Z[2]*final_objects[:,17])+abs(Z[0]*final_objects[:,18])
 
-min_pmag=min(Y)
-max_pmag=max(Y)
-
-extrapolation_mag=np.array(['A']*len(final_objects))
-for i in range(len(final_objects)):
-	if calibration_mag[i]>max_pmag:
-		extrapolation_mag[i]='C'
-	elif calibration_mag[i]<min_pmag:
-		extrapolation_mag[i]='B'
 c1 = fits.Column(name='Image_identifier', array=np.array(len(total_objects[:,0])*['CAHA_CAFOS_BBI_DR1_'+str(CAHA_ID[0])]), format='50A')
 
 c2 = fits.Column(name='SNR_WIN',array=total_objects[:,SNR_WIN], format='E')
@@ -634,7 +629,7 @@ c8 = fits.Column(name='DE_dms', unit='dd:mm:ss', array=DEC.to_string(unit=u.deg,
 c9 = fits.Column(name='e_RA_hms', unit='hh:mm:ss', array=e_RA.to_string(unit=u.hourangle, sep=(':',':')), format='20A')
 c10 = fits.Column(name='e_DE_dms', unit='dd:mm:ss', array=e_DEC.to_string(unit=u.deg, sep=(':',':')), format='20A')
 c11 = fits.Column(name='MAG',array=np.around(Z[1]+Z[0]*total_objects[:,17],3), format='E')
-c12 = fits.Column(name='e_MAG',array=np.around(abs(Z[3])+abs(Z[2]*total_objects[:,17])+abs(Z[0]*total_objects[:,18]),3), format='E')
+c12 = fits.Column(name='e_MAG',array=np.around((abs(e_B)**2+abs(e_A*total_objects[:,17])**2+abs(Z[0]*total_objects[:,18])**2)**0.5,3), format='E')
 c13 = fits.Column(name='MAG_sex',array=np.around(total_objects[:,MAG_PSF],3), format='E')
 c14 = fits.Column(name='e_MAG_sex',array=np.around(total_objects[:,MAGERR_PSF],3), format='E')
 c15 = fits.Column(name='SPREAD_MODEL',array=np.around(total_objects[:,SPREAD_MODEL],2), format='E')
