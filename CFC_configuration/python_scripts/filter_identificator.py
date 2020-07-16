@@ -1,3 +1,5 @@
+# -*-coding: utf-8 -*-
+
 from read_files import *
 
 def search_name(filter_name):
