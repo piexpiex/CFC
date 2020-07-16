@@ -1,3 +1,5 @@
+# -*-coding: utf-8 -*-
+
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse,Circle
 from matplotlib import rcParams
@@ -508,7 +510,10 @@ if len(mag_sex)<6:
 
 X_up,Y_up,Z_up=sigma_c(X=mag_sex,Y=pmag+e_pmag,n_sigma=2)
 X_down,Y_down,Z_down=sigma_c(X=mag_sex,Y=pmag-e_pmag,n_sigma=2)
-X,Y,Z=sigma_c(X=mag_sex,Y=pmag,n_sigma=2)
+#X,Y,Z=sigma_c(X=mag_sex,Y=pmag,n_sigma=2)
+X=(X_up+X_down)*0.5
+Y=(Y_up+Y_down)*0.5
+Z=(Z_up+Z_down)*0.5
 e_A=abs(Z_up[2]-Z_down[2])/2 
 e_B=abs(Z_up[3]-Z_down[3])/2 
 
