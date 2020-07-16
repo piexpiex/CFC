@@ -48,6 +48,6 @@ def sigma_c(X,Y,W=0,n_sigma=1,n_iteraciones=1):
 		lista=np.where((y<ajuste[1]+ajuste[0]*x+n_sigma*ajuste[7]) & (y>ajuste[1]+ajuste[0]*x-n_sigma*ajuste[7]))
 		y=y[lista]
 		x=x[lista]
-		ajuste=ajuste_lineal(x,y)
+		ajuste=np.array(ajuste_lineal(x,y))
 	return(x,y,ajuste)
 
