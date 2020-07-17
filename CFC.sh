@@ -6,11 +6,34 @@ arg=$1
 
 if [ $overwrite = "no" ];
 then
-	for imagen in $arg/*.fits; do
+	case  $arg in
+		*.csv)
+			format="csv"
+			line=0
+			while IFS=',' read -r f1 f2 f3 f4
+			
+			do 
+				if [ $line -gt 0 ];
+					then 
+						bh=${f4#* } 
+						fh=${f3#* } 
+						imagen=science-imaging/$fh/$bh
 
-		python CFC_configuration/python_scripts/sex_analisis_saved.py $imagen "saved"
+							python CFC_configuration/python_scripts/sex_analisis_saved.py $imagen $arg 
 
-	done
+
+				fi
+				line=$((line + 1))
+			done < "$arg"
+			;;
+		*)		
+			for imagen in $arg/*.fits; do
+
+				python CFC_configuration/python_scripts/sex_analisis_saved.py $imagen 
+
+			done
+		;;
+	esac
 else
 	case  $arg in
 		*.csv)
