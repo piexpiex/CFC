@@ -149,6 +149,8 @@ for linea in catalogo:
 		objects.append(lista)
 		lista=[]
 objects=np.array(objects)
+if len(objects[:,0])<6:
+	exit()
 total_objects=objects.copy()
 
 sex_catalog.close
