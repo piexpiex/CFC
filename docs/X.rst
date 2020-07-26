@@ -26,3 +26,15 @@ To change the verbosity use a prefix command before the CFC command:
    verbosity=NORMAL sh CFC.sh filabres_tree.csv
 
 The avalaible values are FULL, NORMAL and QUIET.
+
+
+How to not overwrite
+====================
+
+Due to the SExtractor and PSFEx runs take up most of the time, it may be of interest not to run the entire program again, To not the overwrite the SExtractor final catalogs use a prefix command before the CFC command:
+
+.. code-block:: bash 
+
+   overwrite=no sh CFC.sh filabres_tree.csv
+
+The avalaible values are no and yes (used by default).
