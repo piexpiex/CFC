@@ -235,21 +235,23 @@ for i in range(len(objects)):
 	if objects[i][FLUX_MAX]>FLUX_SATURATION:
 		listaok[i]=2
 		
-#listaok[np.where(listaok==-1)]=1
-C_1=np.where(listaok==1)
-
-flux_mean=np.mean(flux_coef[C_1])
-flux_sigma=np.std(flux_coef[C_1])
-
-C_2=np.where((flux_coef<flux_mean+2*flux_sigma) & (listaok==1))
-
-flux_mean2=np.mean(flux_coef[C_2])
-flux_sigma2=np.std(flux_coef[C_2])
-
-for i in range(len(objects)):
-	if listaok[i]==1:
-		if flux_coef[i]>flux_mean2+3*flux_sigma2:
-			listaok[i]=-1
+#Double check for no linear weak sources (they were taken as real sources)
+##########################################################################
+#C_1=np.where(listaok==1)
+#
+#flux_mean=np.mean(flux_coef[C_1])
+#flux_sigma=np.std(flux_coef[C_1])
+#
+#C_2=np.where((flux_coef<flux_mean+2*flux_sigma) & (listaok==1))
+#
+#flux_mean2=np.mean(flux_coef[C_2])
+#flux_sigma2=np.std(flux_coef[C_2])
+#
+#for i in range(len(objects)):
+#	if listaok[i]==1:
+#		if flux_coef[i]>flux_mean2+3*flux_sigma2:
+#			listaok[i]=-1
+##########################################################################
 
 plt.figure(figsize=(22.0,7.0))
 
@@ -508,14 +510,23 @@ if len(mag_sex)<6:
 
 #Photometry calibration
 
-X_up,Y_up,Z_up=sigma_c(X=mag_sex,Y=pmag+e_pmag,n_sigma=2)
-X_down,Y_down,Z_down=sigma_c(X=mag_sex,Y=pmag-e_pmag,n_sigma=2)
-#X,Y,Z=sigma_c(X=mag_sex,Y=pmag,n_sigma=2)
-X=(X_up+X_down)*0.5
-Y=(Y_up+Y_down)*0.5
-Z=(Z_up+Z_down)*0.5
-e_A=abs(Z_up[2]-Z_down[2])/2 
-e_B=abs(Z_up[3]-Z_down[3])/2 
+#Method of mean two extreme curves
+#X_up,Y_up,Z_up=sigma_c(X=mag_sex,Y=pmag+e_pmag,n_sigma=2)
+#X_down,Y_down,Z_down=sigma_c(X=mag_sex,Y=pmag-e_pmag,n_sigma=2)
+#X=(X_up+X_down)*0.5
+#Y=(Y_up+Y_down)*0.5
+#Z=(Z_up+Z_down)*0.5
+#e_A=abs(Z_up[2]-Z_down[2])/2 
+#e_B=abs(Z_up[3]-Z_down[3])/2 
+
+#Classic method with Monte Carlo uncertainties
+X,Y,Z,lista_sigma_c=sigma_c(X=mag_sex,Y=pmag,n_sigma=2)
+n_times=5000
+X_MC=np.repeat(X,n_times)+np.repeat(magerr_sex[lista_sigma_c],n_times)*np.random.normal(size=np.size(X)*n_times)
+Y_MC=np.repeat(Y,n_times)+np.repeat(e_pmag[lista_sigma_c],n_times)*np.random.normal(size=np.size(Y)*n_times)
+Z_MC=ajuste_lineal(X_MC,Y_MC,W=0)
+e_A=abs(Z_MC[2])
+e_B=abs(Z_MC[3])
 
 try:
 	for j in range(len(X)):
