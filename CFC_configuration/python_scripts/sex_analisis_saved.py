@@ -525,7 +525,7 @@ if len(mag_sex)<6:
 
 #Classic method with Monte Carlo uncertainties
 X,Y,Z,lista_sigma_c=sigma_c(X=mag_sex,Y=pmag,n_sigma=2)
-n_times=5000
+n_times=500
 X_MC=np.repeat(X,n_times)+np.repeat(magerr_sex[lista_sigma_c],n_times)*np.random.normal(size=np.size(X)*n_times)
 Y_MC=np.repeat(Y,n_times)+np.repeat(e_pmag[lista_sigma_c],n_times)*np.random.normal(size=np.size(Y)*n_times)
 Z_MC=ajuste_lineal(X_MC,Y_MC,W=0)
