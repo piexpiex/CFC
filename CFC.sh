@@ -26,6 +26,12 @@ then
 				line=$((line + 1))
 			done < "$arg"
 			;;
+		"merge")
+			python CFC_configuration/python_scripts/MERGER.py
+			;;
+		"MERGE")
+			python CFC_configuration/python_scripts/MERGER.py
+			;;
 		*)		
 			for imagen in $arg/*.fits; do
 
@@ -65,6 +71,12 @@ else
 				fi
 				line=$((line + 1))
 			done < "$arg"
+			;;
+		"merge")
+			python CFC_configuration/python_scripts/MERGER.py
+			;;
+		"MERGE")
+			python CFC_configuration/python_scripts/MERGER.py
 			;;
 		*)		
 			format="folder"
