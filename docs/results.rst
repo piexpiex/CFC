@@ -14,32 +14,31 @@ CFC catalogs with informaton about diffrent parameters of each source (accepted 
 
 The catalogs parameters are:
 
-=========         ======================================================================================
-Parameter         Description
----------         --------------------------------------------------------------------------------------
-Image_identifier  Image identifier in CAHA archives
-Detection_ID      Object identifier in catalog
-MJD               Modified Julian Date of image
-SNR_WIN           signal-noise ratio
-RAJ2000           Right ascension in degrees
-DEJ2000           Declination in degrees
-e_RAJ2000         Uncertainty of right ascension in degrees
-e_DEJ2000         Uncertainty of declination in degrees
-RA_hms            Right ascension in hh:mm:ss format
-DE_dms            Declination in dd:mm:ss format
-MAG               Calibrated magnitude
-e_MAG             Uncertainty in calibrated magnitude
-MAG_sex           SExtractor magnitude
-e_MAG_sex         Uncertainty in SExtractor magnitude
-cl_SDSS           SDSS class, only for object in SDSS field
-SPREAD_MODEL      Value of Sextractor SPREAD_MODEL
-flag_calib        flag of the calibration curve, if the value is A, the magnitude of the object is 
-                  within the calibration curve, if it is B it is less and if it is C it is greater 
-                  than the calibration curve magnitudes
-Filter            Filter of the image
-Elongation        Value of the object elongation
-FWHM              Value of the object Full Weight half maximum
-source_type       Type of object between accepted, saturated and artifacts (only for _sources catalogs).
+==================  =======================================================================================================================================================================================================
+Parameter           Description
+------------------  -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*Image_identifier*  Image identifier in CAHA archives
+*Detection_ID*      Object identifier in catalog
+*MJD*               Modified Julian Date of image
+*SNR_WIN*           signal-noise ratio
+*RAJ2000*           Right ascension in degrees
+*DEJ2000*           Declination in degrees
+*e_RAJ2000*         Uncertainty of right ascension in degrees
+*e_DEJ2000*         Uncertainty of declination in degrees
+*RA_hms*            Right ascension in hh:mm:ss format
+*DE_dms*            Declination in dd:mm:ss format
+*MAG*               Calibrated magnitude
+*e_MAG*             Uncertainty in calibrated magnitude
+*MAG_sex*           SExtractor magnitude
+*e_MAG_sex*         Uncertainty in SExtractor magnitude
+*cl_SDSS*           SDSS class, only for object in SDSS field
+*SPREAD_MODEL*      Value of Sextractor SPREAD_MODEL
+*flag_calib*        flag of the calibration curve, if the value is A, the magnitude of the object is within the calibration curve, if it is B it is less and if it is C it is greater than the calibration curve magnitudes
+*Filter*            Filter of the image
+*Elongation*        Value of the object elongation
+*FWHM*              Value of the object Full Weight half maximum
+*source_type*       Type of object between accepted, saturated and artifacts (only for _sources catalogs).
+==================  =======================================================================================================================================================================================================
 
 Figures
 =======
