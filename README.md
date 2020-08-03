@@ -51,6 +51,14 @@ The images have to be reduced and calibrated astrometrically.
 
 -Elaboration of a catalog associated with each image with the objects calibrated in magnitudes and different quality parameters.
 
+# Merge catalogs
+
+To merge the obtained catalogs, you can use the command:
+
+sh CFC.sh merge
+
+This produces a catalog with lines of all catalogs obtained previously in a new folder called catalogs_folder/merge_catalogs.
+
 # Results
 
 -Catalogues of objects calibrated in magnitude associated with each image of CAFOS.
