@@ -81,8 +81,9 @@ data = hdulist[0].data
 if color=='X':
 	print('no SDSS filter')
 	images_table=open('logouts_folder/data_table.csv','a')
-	images_table.write(fichero[0:len(fichero)-5]+','+'   ----No SDSS filter---')
+	images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ '----No SDSS filter---'+'\n')
 	exit()
+
 #hdulist = fits.open("CFC_configuration/sextractor_result_files/bkg.fits")
 #data_bkg= hdulist[0].data
 #data_sub=data-data_bkg
