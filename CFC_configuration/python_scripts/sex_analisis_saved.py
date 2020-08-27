@@ -633,43 +633,44 @@ if Z[4]>=0.98:
 
 
 
-c1 = fits.Column(name='Image_identifier', array=np.array(len(total_objects[:,0])*['CAHA_CAFOS_BBI_DR1_'+str(CAHA_ID[0])]), format='50A')
-DETECTION_ID=np.array(len(total_objects)*['CAHA_CAFOS_BBI_DR1_'+CAHA_ID[0]+'_0000'])
-contador_A=1
-contador_B=1
-for j in range(len(total_objects)):
-	if listaok[j]==1:
-		DETECTION_ID[j]='CAHA_CAFOS_BBI_DR1_'+CAHA_ID[0]+'_'+'0'*(3-int(np.log10(contador_A)))+str(contador_A)
-		contador_A=contador_A+1
-	if listaok[j]==1:
-		DETECTION_ID[j]='CAHA_CAFOS_BBI_DR1_'+CAHA_ID[0]+'_'+'0'*(3-int(np.log10(contador_B)))+str(contador_B)
-		contador_B=contador_B+1
-c2 = fits.Column(name='Detection_ID', array=DETECTION_ID, format='50A')
-c3 = fits.Column(name='MJD', array=np.array(len(total_objects[:,0])*[str(MJD)]), format='12A')
-c4 = fits.Column(name='SNR_WIN',array=total_objects[:,SNR_WIN], format='E')
-c5 = fits.Column(name='RAJ2000', unit='deg',array=np.around(total_objects[:,ALPHA_J2000],5), format='E')
-c6 = fits.Column(name='DEJ2000', unit='deg',array=np.around(total_objects[:,DELTA_J2000],5), format='E')
-c7 = fits.Column(name='e_RAJ2000', unit='arcsec',array=np.around(3600*total_objects[:,ERRX2_WORLD]**0.5,5), format='E')
-c8 = fits.Column(name='e_DEJ2000', unit='arcsec',array=np.around(3600*total_objects[:,ERRY2_WORLD]**0.5,5), format='E')
-RA=Angle(total_objects[:,ALPHA_J2000]* u.deg)
-DEC=Angle(total_objects[:,DELTA_J2000]* u.deg)
-e_RA=Angle(total_objects[:,ERRX2_WORLD]**0.5* u.deg)
-e_DEC=Angle(total_objects[:,ERRY2_WORLD]**0.5* u.deg)
-c9 = fits.Column(name='RA_hms', unit='hh:mm:ss', array=RA.to_string(unit=u.hourangle, sep=(':',':')), format='20A')
-c10 = fits.Column(name='DE_dms', unit='dd:mm:ss', array=DEC.to_string(unit=u.deg, sep=(':',':')), format='20A')
-c11 = fits.Column(name='e_RA_hms', unit='hh:mm:ss', array=e_RA.to_string(unit=u.hourangle, sep=(':',':')), format='20A')
-c12 = fits.Column(name='e_DE_dms', unit='dd:mm:ss', array=e_DEC.to_string(unit=u.deg, sep=(':',':')), format='20A')
-c13 = fits.Column(name='MAG',array=np.around(Z[1]+Z[0]*total_objects[:,17],3), format='E')
-c14 = fits.Column(name='e_MAG',array=np.around((abs(e_B)**2+abs(e_A*total_objects[:,17])**2+abs(Z[0]*total_objects[:,18])**2)**0.5,3), format='E')
-c15 = fits.Column(name='MAG_sex',array=np.around(total_objects[:,MAG_PSF],3), format='E')
-c16 = fits.Column(name='e_MAG_sex',array=np.around(total_objects[:,MAGERR_PSF],3), format='E')
-c17 = fits.Column(name='SPREAD_MODEL',array=np.around(total_objects[:,SPREAD_MODEL],2), format='E')
-c18 = fits.Column(name='Filter',array=np.array([name_filter]*len(total_objects[:,0])), format='10A')
-c19 = fits.Column(name='Elongation',array=np.around(total_objects[:,ELONGATION],2), format='E')
-c20 = fits.Column(name='FWHM', unit='arcsec',array=np.around(3600*total_objects[:,FWHM_WORLD],2), format='E')
-c21 = fits.Column(name='source_type',array=source_flag, format='E')
+	c1 = fits.Column(name='Image_identifier', array=np.array(len(total_objects[:,0])*['CAHA_CAFOS_BBI_DR1_'+str(CAHA_ID[0])]), format='50A')
+	DETECTION_ID=np.array(len(total_objects)*['CAHA_CAFOS_BBI_DR1_'+CAHA_ID[0]+'_0000'])
+	contador_A=1+len(final_objects)
+	contador_B=1
+	for j in range(len(total_objects)):
+		if listaok[j]!=1:
+			DETECTION_ID[j]='CAHA_CAFOS_BBI_DR1_'+CAHA_ID[0]+'_'+'0'*(3-int(np.log10(contador_A)))+str(contador_A)
+			contador_A=contador_A+1
+		if listaok[j]==1:
+			DETECTION_ID[j]='CAHA_CAFOS_BBI_DR1_'+CAHA_ID[0]+'_'+'0'*(3-int(np.log10(contador_B)))+str(contador_B)
+			contador_B=contador_B+1
+	c2 = fits.Column(name='Detection_ID', array=DETECTION_ID, format='50A')
+	c3 = fits.Column(name='MJD', array=np.array(len(total_objects[:,0])*[str(MJD)]), format='12A')
+	c4 = fits.Column(name='SNR_WIN',array=total_objects[:,SNR_WIN], format='E')
+	c5 = fits.Column(name='RAJ2000', unit='deg',array=np.around(total_objects[:,ALPHA_J2000],5), format='E')
+	c6 = fits.Column(name='DEJ2000', unit='deg',array=np.around(total_objects[:,DELTA_J2000],5), format='E')
+	c7 = fits.Column(name='e_RAJ2000', unit='arcsec',array=np.around(3600*total_objects[:,ERRX2_WORLD]**0.5,5), format='E')
+	c8 = fits.Column(name='e_DEJ2000', unit='arcsec',array=np.around(3600*total_objects[:,ERRY2_WORLD]**0.5,5), format='E')
+	RA=Angle(total_objects[:,ALPHA_J2000]* u.deg)
+	DEC=Angle(total_objects[:,DELTA_J2000]* u.deg)
+	e_RA=Angle(total_objects[:,ERRX2_WORLD]**0.5* u.deg)
+	e_DEC=Angle(total_objects[:,ERRY2_WORLD]**0.5* u.deg)
+	c9 = fits.Column(name='RA_hms', unit='hh:mm:ss', array=RA.to_string(unit=u.hourangle, sep=(':',':')), format='20A')
+	c10 = fits.Column(name='DE_dms', unit='dd:mm:ss', array=DEC.to_string(unit=u.deg, sep=(':',':')), format='20A')
+	c11 = fits.Column(name='e_RA_hms', unit='hh:mm:ss', array=e_RA.to_string(unit=u.hourangle, sep=(':',':')), format='20A')
+	c12 = fits.Column(name='e_DE_dms', unit='dd:mm:ss', array=e_DEC.to_string(unit=u.deg, sep=(':',':')), format='20A')
+	c13 = fits.Column(name='MAG',array=np.around(Z[1]+Z[0]*total_objects[:,17],3), format='E')
+	c14 = fits.Column(name='e_MAG',array=np.around((abs(e_B)**2+abs(e_A*total_objects[:,17])**2+abs(Z[0]*total_objects[:,18])**2)**0.5,3), format='E')
+	c15 = fits.Column(name='MAG_sex',array=np.around(total_objects[:,MAG_PSF],3), format='E')
+	c16 = fits.Column(name='e_MAG_sex',array=np.around(total_objects[:,MAGERR_PSF],3), format='E')
+	c17 = fits.Column(name='SPREAD_MODEL',array=np.around(total_objects[:,SPREAD_MODEL],2), format='E')
+	c18 = fits.Column(name='Filter',array=np.array([name_filter]*len(total_objects[:,0])), format='10A')
+	c19 = fits.Column(name='Elongation',array=np.around(total_objects[:,ELONGATION],2), format='E')
+	c20 = fits.Column(name='FWHM', unit='arcsec',array=np.around(3600*total_objects[:,FWHM_WORLD],2), format='E')
+	c21 = fits.Column(name='source_type',array=source_flag, format='E')
 
-t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21],name='catalog')
-t.writeto('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.fits',overwrite=True)
-votable2=Table.read('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.fits')
-votable2.write('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.xml',table_id='table_id',format='votable',overwrite=True)
+	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21],name='catalog')
+	t.writeto('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.fits',overwrite=True)
+	votable2=Table.read('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.fits')
+	votable2.write('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.xml',table_id='table_id',format='votable',overwrite=True)
+
