@@ -98,6 +98,9 @@ try:
 	catalogo = open('catalogs_folder/SExtractor_catalogs/'+fichero[0:len(fichero)-5]+'_sex.cat')
 except:
 	print('no saved Sextractor catalog for'+ fichero)
+	images_table=open('logouts_folder/data_table.csv','a')
+	images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'No saved Sextractor catalog'+'\n')
+	images_table.close
 	exit()
 
 NUMBER=0       #   1 NUMBER                 Running object number                                     

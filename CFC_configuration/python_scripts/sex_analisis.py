@@ -93,8 +93,13 @@ if color=='X':
 ########################
 ### Reading test.cat ###
 ########################
-
-catalogo = open('CFC_configuration/sextractor_result_files/test.cat')
+try:
+	catalogo = open('CFC_configuration/sextractor_result_files/test.cat')
+except:
+	images_table=open('logouts_folder/data_table.csv','a')
+	images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Image not valid for SExtractor'+'\n')
+	images_table.close
+	exit()
 NUMBER=0       #   1 NUMBER                 Running object number                                     
 FLAGS=1        #   2 FLAGS                  Extraction flags                                          
 FLAGS_WEIGHT=2 #   3 FLAGS_WEIGHT           Weighted extraction flags                                 
