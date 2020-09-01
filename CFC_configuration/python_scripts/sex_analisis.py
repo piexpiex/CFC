@@ -81,7 +81,8 @@ data = hdulist[0].data
 if color=='X':
 	print('no SDSS filter')
 	images_table=open('logouts_folder/data_table.csv','a')
-	images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ '----No SDSS filter---'+'\n')
+	(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'No SDSS filter'+'\n')
+	images_table.close
 	exit()
 
 #hdulist = fits.open("CFC_configuration/sextractor_result_files/bkg.fits")
@@ -150,12 +151,15 @@ for linea in catalogo:
 		objects.append(lista)
 		lista=[]
 objects=np.array(objects)
-if len(objects[:,0])<6:
-	exit()
+
 total_objects=objects.copy()
 
 sex_catalog.close
-
+if len(objects[:,0])<6:
+	images_table=open('logouts_folder/data_table.csv','a')
+	images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects'+'\n')
+	images_table.close
+	exit()
 Nobjetos=0
 
 listaok=np.array([1.0]*len(objects))
@@ -294,6 +298,12 @@ cl_SDSS=np.array([0.0]*len(objects[:,SPREAD_MODEL]))
 final_objects=objects
 objects=objects[np.where(SM_flag>-0.05)]
 
+if len(objects[:,0])<6:
+	images_table=open('logouts_folder/data_table.csv','a')
+	images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects'+'\n')
+	images_table.close
+	exit()
+
 c1 = fits.Column(name='NUMBER', array=objects[:,NUMBER], format='E')
 c2 = fits.Column(name='SNR_WIN',array=objects[:,SNR_WIN], format='E')
 c3 = fits.Column(name='FLUX_MAX',array=objects[:,FLUX_MAX], format='E')
@@ -335,6 +345,14 @@ if len(catalog)==0:
 
 if len(catalog)<6:
 	print('Insufficient number of objects for photometric calibration')
+	if sdss_key==0:
+		images_table=open('logouts_folder/data_table.csv','a')
+		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ 'SDSS' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects'+'\n')
+		images_table.close
+	else:
+		images_table=open('logouts_folder/data_table.csv','a')
+		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ 'APASS' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects'+'\n')
+		images_table.close	
 	exit()	
 
 
@@ -507,6 +525,14 @@ if sdss_key==0:
 
 if len(mag_sex)<6:
 	print('Insufficient number of objects for photometric calibration')
+	if sdss_key==0:
+		images_table=open('logouts_folder/data_table.csv','a')
+		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ 'SDSS' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects'+'\n')
+		images_table.close
+	else:
+		images_table=open('logouts_folder/data_table.csv','a')
+		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ 'APASS' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects'+'\n')
+		images_table.close	
 	exit()
 	
 
@@ -570,14 +596,16 @@ plt.savefig('figures_folder/'+fichero[0:len(fichero)-5]+'_magnitude_comparation.
 ##############
 
 state='rejected'
+semi_state='r Pearson coefficient < 0.98'
 if Z[4]>=0.98:
 	state='calibrated'
+	semi_state=' '
 images_table=open('logouts_folder/data_table.csv','a')
 
 if sdss_key==0:
-	images_table.write(fichero[0:len(fichero)-5] +','+  str(N_C) +','+  str(round(Z[1],3))+','+  str(round(e_B,3)) +','+  str(round(Z[0],3))+','+  str(round(e_A,3)) +','+ str(round(Z[4],3)) +','+  state+'\n')
+	images_table.write(fichero[0:len(fichero)-5] +','+  str(N_C) +','+'SDSS'+','+  str(round(Z[1],3))+','+  str(round(e_B,3)) +','+  str(round(Z[0],3))+','+  str(round(e_A,3)) +','+ str(round(Z[4],3)) +','+  state+ ',' + semi_state+'\n')
 if sdss_key==1:
-	images_table.write(fichero[0:len(fichero)-5] +','+  str(N_B) +','+  str(round(Z[1],3))+','+  str(round(e_B,3)) +','+  str(round(Z[0],3))+','+  str(round(e_A,3)) +','+ str(round(Z[4],3)) +','+  state+'\n')
+	images_table.write(fichero[0:len(fichero)-5] +','+  str(N_B) +','+'APASS'+','+  str(round(Z[1],3))+','+  str(round(e_B,3)) +','+  str(round(Z[0],3))+','+  str(round(e_A,3)) +','+ str(round(Z[4],3)) +','+  state+ ',' + semi_state+'\n')
 
 images_table.close
 ###########
