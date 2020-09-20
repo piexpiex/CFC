@@ -4,10 +4,26 @@ import numpy as np
 from astropy.io import fits
 from read_files import *
 import sys
+import os
 
-fichero=sys.argv[1]
+try:
+	os.remove('CFC_configuration/sextractor_result_files/test.cat')
+except:
+	pass
 
-hdulist = fits.open(fichero)
+fichero_fits=sys.argv[1]
+
+fichero=delete_folder_name(fichero_fits)
+try:
+	hdulist = fits.open(fichero_fits)
+	images_table=open('logouts_folder/data_table.csv','a')
+	images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Image not valid for SExtractor'+'\n')
+	images_table.close
+except:
+	images_table=open('logouts_folder/data_table.csv','a')
+	images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Image not found'+'\n')
+	images_table.close
+	exit()
 
 data = hdulist[0].data
 

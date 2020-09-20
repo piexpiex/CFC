@@ -5,6 +5,7 @@ from matplotlib.patches import Ellipse,Circle
 from matplotlib import rcParams
 from math import *
 from sigma_c import *
+from selector import *
 from filter_identificator import *
 from astropy.io import fits
 from astropy.table import Table
@@ -30,6 +31,8 @@ try:
 	warnings.filterwarnings('ignore')
 except:
 	print('warnings active')
+
+
 #############################
 ## Lectura de las imagenes ##
 #############################
@@ -63,14 +66,25 @@ try:
 	filter_id=images[:,1]
 	programa_id=images[:,2] 
 	fich_reducido_id=images[:,3]
-	hdulist = fits.open(fichero)
+	try:
+		hdulist = fits.open(fichero)
+	except:
+		fichero=delete_folder_name(fichero)
+		print(fichero+'   No avalaible')
+		images_table=open('logouts_folder/data_table.csv','a')
+		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Image not found'+'\n')
+		images_table.close
+		exit()
 	fichero=delete_folder_name(fichero)
 	name_filter=filter_id[np.where(fich_reducido_id==fichero+'\n')]#hdulist[0].header['INSFLNAM']
 	name_filter=name_filter[0]
 	CAHA_ID=caha_id[np.where(fich_reducido_id==fichero+'\n')]
 
 except:
-	hdulist = fits.open(fichero)
+	try:
+		hdulist = fits.open(fichero)
+	except:
+		exit()
 	fichero=delete_folder_name(fichero)
 	name_filter=hdulist[0].header['INSFLNAM']
 	CAHA_ID='X'
@@ -89,10 +103,10 @@ if color=='X':
 #data_sub=data-data_bkg
 # show the image
 
+
 ########################
 ### Reading test.cat ###
 ########################
-
 
 try:
 	catalogo = open('catalogs_folder/SExtractor_catalogs/'+fichero[0:len(fichero)-5]+'_sex.cat')
@@ -102,6 +116,7 @@ except:
 	images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'No saved Sextractor catalog'+'\n')
 	images_table.close
 	exit()
+
 
 NUMBER=0       #   1 NUMBER                 Running object number                                     
 FLAGS=1        #   2 FLAGS                  Extraction flags                                          
@@ -159,9 +174,16 @@ for linea in catalogo:
 objects=np.array(objects)
 
 total_objects=objects.copy()
-if len(objects[:,0])<6:
+
+try:
+	if len(objects[:,0])<6:
+		images_table=open('logouts_folder/data_table.csv','a')
+		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects in the image'+'\n')
+		images_table.close
+		exit()
+except:
 	images_table=open('logouts_folder/data_table.csv','a')
-	images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects'+'\n')
+	images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects in the image'+'\n')
 	images_table.close
 	exit()
 Nobjetos=0
@@ -304,7 +326,7 @@ objects=objects[np.where(SM_flag>-0.05)]
 
 if len(objects[:,0])<6:
 	images_table=open('logouts_folder/data_table.csv','a')
-	images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects'+'\n')
+	images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects in the image'+'\n')
 	images_table.close
 	exit()
 	
@@ -321,6 +343,9 @@ c10 = fits.Column(name='FLUXERR_PSF',array=objects[:,FLUXERR_PSF], format='E')
 c11 = fits.Column(name='MAG_PSF',array=objects[:,MAG_PSF], format='E')
 c12 = fits.Column(name='MAGERR_PSF',array=objects[:,MAGERR_PSF], format='E')
 c13 = fits.Column(name='SPREAD_MODEL',array=objects[:,SPREAD_MODEL], format='E')
+
+alpha_find_sources=objects[:,ALPHA_J2000]
+delta_find_sources=objects[:,DELTA_J2000]
 
 #t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8],name='valores')
 #t.writeto('a.fits',overwrite=True)
@@ -352,11 +377,11 @@ if len(catalog)<6:
 	print('Insufficient number of objects for photometric calibration')
 	if sdss_key==0:
 		images_table=open('logouts_folder/data_table.csv','a')
-		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ 'SDSS' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects'+'\n')
+		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'No avalaible catalog in this skyfield'+'\n')
 		images_table.close
 	else:
 		images_table=open('logouts_folder/data_table.csv','a')
-		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ 'APASS' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects'+'\n')
+		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'No avalaible catalog in this skyfield'+'\n')
 		images_table.close	
 	exit()	
 
@@ -374,10 +399,10 @@ SPREAD_VALUE=catalog['SPREAD_MODEL']
 limit_detection=25
 limit_sat=0
 if sdss_key==0:
+	alpha_2_find_sources=catalog['RAdeg']
+	delta_2_find_sources=catalog['DEdeg']
 	q_mode=catalog['q_mode']
 	class_sdss=catalog['class']
-	for j in range(len(class_sdss)):
-		cl_SDSS[np.where(final_objects[:,0]==NUMBER_XMATCH[j])]=class_sdss[j]
 	if color=='u'or color=='U':
 		pmag=catalog['umag']
 		e_pmag=catalog['e_umag']
@@ -409,6 +434,8 @@ if sdss_key==0:
 		limit_detection=20.71
 		limit_sat=12
 if sdss_key==1:
+	alpha_2_find_sources=catalog['RAJ2000']
+	delta_2_find_sources=catalog['DEJ2000']
 	if color=='r'or color=='R':
 		pmag=catalog['rpmag']
 		e_pmag=catalog['e_rpmag']
@@ -441,10 +468,34 @@ if sdss_key==1:
 		name_mag='APASS imag'
 		limit_detection=22.2
 		limit_sat=14
+
+lista=[mag_sex,magerr_sex,ellongation,ellipticity,FWHM,pmag,e_pmag,SPREAD_VALUE,NUMBER_XMATCH,class_sdss]
+
+Numbers,Numbers_ok=find_sources(alpha_find_sources,delta_find_sources,alpha_2_find_sources,delta_2_find_sources)
+
+for k in range(len(lista)):
+	lista[k]=lista[k][Numbers]
+	lista[k]=lista[k][np.where(Numbers_ok==1)]
+
+mag_sex=lista[0]
+magerr_sex=lista[1]
+ellongation=lista[2]
+ellipticity=lista[3]
+FWHM=lista[4]
+pmag=lista[5]
+e_pmag=lista[6]
+SPREAD_VALUE=lista[7]
+NUMBER_XMATCH=lista[8]
+class_sdss=lista[9]
+
 if len(pmag)<6:
-	exit()	
-lista=[mag_sex,magerr_sex,ellongation,ellipticity,FWHM,pmag,e_pmag,SPREAD_VALUE,NUMBER_XMATCH]
+	exit()
 print('number of skymatch objects',len(pmag))
+
+for j in range(len(class_sdss)):
+		cl_SDSS[np.where(final_objects[:,0]==NUMBER_XMATCH[j])]=class_sdss[j]
+
+
 e_factor=sum(e_pmag)/sum(pmag)
 plt.figure(figsize=(22.0,7.0))
 plt.suptitle('Magnitude calibration')
@@ -530,11 +581,11 @@ if len(mag_sex)<6:
 	print('Insufficient number of objects for photometric calibration')
 	if sdss_key==0:
 		images_table=open('logouts_folder/data_table.csv','a')
-		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ 'SDSS' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Calibration is not possible'+'\n')
+		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ 'SDSS' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects for the calibration'+'\n')
 		images_table.close
 	else:
 		images_table=open('logouts_folder/data_table.csv','a')
-		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ 'APASS' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Calibration is not possible'+'\n')
+		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ 'APASS' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects for the calibration'+'\n')
 		images_table.close	
 	exit()
 	
@@ -653,9 +704,10 @@ if Z[4]>=0.98:
 	c19 = fits.Column(name='flag_calib',array=extrapolation_mag, format='3A')
 	c20 = fits.Column(name='Filter',array=np.array([name_filter]*len(final_objects[:,0])), format='10A')
 	c21 = fits.Column(name='Elongation',array=np.around(final_objects[:,ELONGATION],2), format='E')
-	c22 = fits.Column(name='FWHM', unit='arcsec',array=np.around(3600*final_objects[:,FWHM_WORLD],2), format='E')
+	c22 = fits.Column(name='Ellipticity',array=np.around(final_objects[:,ELLIPTICITY],2), format='E')
+	c23 = fits.Column(name='FWHM', unit='arcsec',array=np.around(3600*final_objects[:,FWHM_WORLD],2), format='E')
 	
-	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22],name='catalog')
+	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23],name='catalog')
 	t.writeto('catalogs_folder/CFC_catalogs/'+fichero[0:len(fichero)-5]+'_catalog.fits',overwrite=True)
 	votable1=Table.read('catalogs_folder/CFC_catalogs/'+fichero[0:len(fichero)-5]+'_catalog.fits')
 	votable1.write('catalogs_folder/CFC_catalogs/'+fichero[0:len(fichero)-5]+'_catalog.xml',table_id='table_id',format='votable',overwrite=True)
@@ -696,11 +748,13 @@ if Z[4]>=0.98:
 	c17 = fits.Column(name='SPREAD_MODEL',array=np.around(total_objects[:,SPREAD_MODEL],2), format='E')
 	c18 = fits.Column(name='Filter',array=np.array([name_filter]*len(total_objects[:,0])), format='10A')
 	c19 = fits.Column(name='Elongation',array=np.around(total_objects[:,ELONGATION],2), format='E')
-	c20 = fits.Column(name='FWHM', unit='arcsec',array=np.around(3600*total_objects[:,FWHM_WORLD],2), format='E')
-	c21 = fits.Column(name='source_type',array=source_flag, format='E')
+	c20 = fits.Column(name='Ellipticity',array=np.around(final_objects[:,ELLIPTICITY],2), format='E')
+	c21 = fits.Column(name='FWHM', unit='arcsec',array=np.around(3600*total_objects[:,FWHM_WORLD],2), format='E')
+	c22 = fits.Column(name='source_type',array=source_flag, format='E')
 
-	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21],name='catalog')
+	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22],name='catalog')
 	t.writeto('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.fits',overwrite=True)
 	votable2=Table.read('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.fits')
 	votable2.write('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.xml',table_id='table_id',format='votable',overwrite=True)
-
+if Z[4]<0.98:
+	print('r pearson coefficient lower than 0.98')
