@@ -1,12 +1,12 @@
  #!/bin/bash
 
-python CFC_configuration/python_scripts/setup.py $verbosity
-
-arg=$1
-
 echo --------------------------------
 echo --- Starting the CFC anaysis ---
 echo --------------------------------
+
+python CFC_configuration/python_scripts/setup.py $verbosity
+
+arg=$1
 
 case $overwrite in
 	no)
