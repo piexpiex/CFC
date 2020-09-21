@@ -175,13 +175,20 @@ objects=np.array(objects)
 
 total_objects=objects.copy()
 
+len_objects_key=0
 try:
-	if len(objects[:,0])<6:
+	len_objects=len(objects[:,0])
+	len_objects_key=1
+except:
+	pass
+
+if len_objects_key==1:
+	if len_objects<6:
 		images_table=open('logouts_folder/data_table.csv','a')
 		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects in the image'+'\n')
 		images_table.close
 		exit()
-except:
+if len_objects_key==0:
 	images_table=open('logouts_folder/data_table.csv','a')
 	images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects in the image'+'\n')
 	images_table.close

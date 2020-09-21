@@ -7,6 +7,6 @@ def find_sources(X,Y,X2,Y2):
 
 	for j in range(len(X)):
 		Numbers[j]=np.where(value[j]==min(value[j]))[0][0]
-		if min(value[j])<2.0:
+		if min(value[j])<4.0:
 			Numbers_ok[j]=1	
 	return(Numbers,Numbers_ok)

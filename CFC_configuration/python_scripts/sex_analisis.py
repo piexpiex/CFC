@@ -182,7 +182,21 @@ objects=np.array(objects)
 total_objects=objects.copy()
 
 sex_catalog.close
-if len(objects[:,0])<6:
+
+len_objects_key=0
+try:
+	len_objects=len(objects[:,0])
+	len_objects_key=1
+except:
+	pass
+
+if len_objects_key==1:
+	if len_objects<6:
+		images_table=open('logouts_folder/data_table.csv','a')
+		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects in the image'+'\n')
+		images_table.close
+		exit()
+if len_objects_key==0:
 	images_table=open('logouts_folder/data_table.csv','a')
 	images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects in the image'+'\n')
 	images_table.close
@@ -480,7 +494,7 @@ Numbers,Numbers_ok=find_sources(alpha_find_sources,delta_find_sources,alpha_2_fi
 for k in range(len(lista)):
 	lista[k]=lista[k][Numbers]
 	lista[k]=lista[k][np.where(Numbers_ok==1)]
-print(len(Numbers))
+
 mag_sex=lista[0]
 magerr_sex=lista[1]
 ellongation=lista[2]
