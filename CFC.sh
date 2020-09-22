@@ -4,9 +4,21 @@ echo --------------------------------
 echo --- Starting the CFC anaysis ---
 echo --------------------------------
 
-python CFC_configuration/python_scripts/setup.py $verbosity
+
 
 arg=$1
+
+case  $arg in
+	"merge")
+		merge_statur="merge"
+		;;
+	"MERGE")
+		merge_statur="merge"
+		;;	
+	*)
+		python CFC_configuration/python_scripts/setup.py $verbosity
+		;;
+esac
 
 case $overwrite in
 	no)
