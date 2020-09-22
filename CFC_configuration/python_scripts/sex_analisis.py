@@ -489,6 +489,8 @@ if sdss_key==1:
 
 lista=[mag_sex,magerr_sex,ellongation,ellipticity,FWHM,pmag,e_pmag,SPREAD_VALUE,NUMBER_XMATCH,class_sdss]
 
+alpha_find_sources=np.around(alpha_find_sources,5)
+delta_find_sources=np.around(delta_find_sources,5)
 Numbers,Numbers_ok=find_sources(alpha_find_sources,delta_find_sources,alpha_2_find_sources,delta_2_find_sources)
 
 for k in range(len(lista)):
