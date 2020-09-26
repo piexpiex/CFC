@@ -504,8 +504,6 @@ print('number of skymatch objects',len(pmag))
 for j in range(len(class_sdss)):
 		cl_SDSS[np.where(final_objects[:,0]==NUMBER_XMATCH[j])]=class_sdss[j]
 
-
-e_factor=sum(e_pmag)/sum(pmag)
 plt.figure(figsize=(22.0,7.0))
 plt.suptitle('Magnitude calibration')
 plt.xlabel('MAG PSF ('+name_filter+')')
@@ -666,9 +664,9 @@ if Z[4]>=0.98:
 images_table=open('logouts_folder/data_table.csv','a')
 
 if sdss_key==0:
-	images_table.write(fichero[0:len(fichero)-5] +','+  str(N_C) +','+'SDSS'+','+  str(round(Z[1],3))+','+  str(round(e_B,3)) +','+  str(round(Z[0],3))+','+  str(round(e_A,3)) +','+ str(round(Z[4],3)) +','+  state+ ',' + semi_state+'\n')
+	images_table.write(fichero[0:len(fichero)-5] +','+  str(N_C) +','+'SDSS'+','+  str(round(Z[1],5))+','+  str(round(e_B,5)) +','+  str(round(Z[0],5))+','+  str(round(e_A,5)) +','+ str(round(Z[4],3)) +','+  state+ ',' + semi_state+'\n')
 if sdss_key==1:
-	images_table.write(fichero[0:len(fichero)-5] +','+  str(N_B) +','+'APASS'+','+  str(round(Z[1],3))+','+  str(round(e_B,3)) +','+  str(round(Z[0],3))+','+  str(round(e_A,3)) +','+ str(round(Z[4],3)) +','+  state+ ',' + semi_state+'\n')
+	images_table.write(fichero[0:len(fichero)-5] +','+  str(N_B) +','+'APASS'+','+  str(round(Z[1],5))+','+  str(round(e_B,5)) +','+  str(round(Z[0],5))+','+  str(round(e_A,5)) +','+ str(round(Z[4],3)) +','+  state+ ',' + semi_state+'\n')
 
 images_table.close
 ###########
