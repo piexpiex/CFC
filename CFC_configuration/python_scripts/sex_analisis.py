@@ -78,20 +78,7 @@ except:
 	CAHA_ID='X'
 MJD=hdulist[0].header['MJD-OBS']
 color=search_name(name_filter)
-
 data = hdulist[0].data
-if color=='X':
-	print('no SDSS filter')
-	images_table=open('logouts_folder/data_table.csv','a')
-	(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'No SDSS filter'+'\n')
-	images_table.close
-	exit()
-
-#hdulist = fits.open("CFC_configuration/sextractor_result_files/bkg.fits")
-#data_bkg= hdulist[0].data
-#data_sub=data-data_bkg
-# show the image
-
 
 ############################################
 ## quitar última línea del data_table.csv ##
@@ -110,6 +97,19 @@ for linea in data_table:
 new_data_table = open('logouts_folder/data_table.csv','w')
 for j in range(len(data_table_to_write)):
 	new_data_table.write(data_table_to_write[j][0])
+############################################
+
+if color=='X':
+	print('no SDSS filter')
+	images_table=open('logouts_folder/data_table.csv','a')
+	images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'No SDSS filter'+'\n')
+	images_table.close
+	exit()
+
+#hdulist = fits.open("CFC_configuration/sextractor_result_files/bkg.fits")
+#data_bkg= hdulist[0].data
+#data_sub=data-data_bkg
+# show the image
 
 
 ########################
