@@ -705,7 +705,7 @@ if Z[4]>=0.98:
 	#c6 = fits.Column(name='DEJ2000', unit='deg',array=np.around(final_objects[:,DELTA_J2000],5), format='E')
 	#c7 = fits.Column(name='e_RAJ2000', unit='arcsec',array=np.around(3600*final_objects[:,ERRX2_WORLD]**0.5,5), format='E')
 	#c8 = fits.Column(name='e_DEJ2000', unit='arcsec',array=np.around(3600*final_objects[:,ERRY2_WORLD]**0.5,5), format='E')
-	c5 = fits.Column(name='RAJ2000', unit='deg',array=final_objects[:,ALPHA_J2000] format='E')
+	c5 = fits.Column(name='RAJ2000', unit='deg',array=final_objects[:,ALPHA_J2000], format='E')
 	c6 = fits.Column(name='DEJ2000', unit='deg',array=final_objects[:,DELTA_J2000], format='E')
 	c7 = fits.Column(name='e_RAJ2000', unit='arcsec',array=3600*final_objects[:,ERRX2_WORLD]**0.5, format='E')
 	c8 = fits.Column(name='e_DEJ2000', unit='arcsec',array=3600*final_objects[:,ERRY2_WORLD]**0.5, format='E')
