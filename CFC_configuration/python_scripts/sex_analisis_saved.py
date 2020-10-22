@@ -90,8 +90,27 @@ except:
 	CAHA_ID='X'
 MJD=hdulist[0].header['MJD-OBS']
 color=search_name(name_filter)
-
 data = hdulist[0].data
+
+############################################
+## quitar última línea del data_table.csv ##
+############################################
+
+data_table_to_write=[]
+data_table = open('logouts_folder/data_table.csv')
+
+for linea in data_table:
+	if linea[0:len(fichero)-5]==fichero[0:len(fichero)-5]:
+		linea=''
+	else:
+		pass
+	data_table_to_write.append([linea])
+
+new_data_table = open('logouts_folder/data_table.csv','w')
+for j in range(len(data_table_to_write)):
+	new_data_table.write(data_table_to_write[j][0])
+############################################
+
 if color=='X':
 	print('no SDSS filter')
 	images_table=open('logouts_folder/data_table.csv','a')
