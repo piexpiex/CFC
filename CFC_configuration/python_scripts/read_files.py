@@ -1,8 +1,9 @@
 def delete_space(A):
-	while A[0]==' ' and A!=' ':
-		A=A[1:len(A)]
-	while A[len(A)-1]==' ' and A!=' ':
-		A=A[0:len(A)-1]
+	if len(A)>0:
+		while A[0]==' ' and A!=' ':
+			A=A[1:len(A)]
+		while A[len(A)-1]==' ' and A!=' ':
+			A=A[0:len(A)-1]
 	return(A)
 def delete_folder_name(A):
 	B=''
