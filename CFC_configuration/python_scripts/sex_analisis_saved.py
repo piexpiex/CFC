@@ -40,6 +40,16 @@ except:
 fichero=sys.argv[1]
 
 try:
+	hdulist = fits.open(fichero)
+except:
+	fichero=delete_folder_name(fichero)
+	print(fichero+'   No avalaible')
+	images_table=open('logouts_folder/data_table.csv','a')
+	images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Image not found'+'\n')
+	images_table.close
+	exit()
+
+try:
 	id_table=open(sys.argv[2])
 
 	lista=[]
@@ -66,15 +76,7 @@ try:
 	filter_id=images[:,1]
 	programa_id=images[:,2] 
 	fich_reducido_id=images[:,3]
-	try:
-		hdulist = fits.open(fichero)
-	except:
-		fichero=delete_folder_name(fichero)
-		print(fichero+'   No avalaible')
-		images_table=open('logouts_folder/data_table.csv','a')
-		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Image not found'+'\n')
-		images_table.close
-		exit()
+	
 	fichero=delete_folder_name(fichero)
 	name_filter=filter_id[np.where(fich_reducido_id==fichero+'\n')]#hdulist[0].header['INSFLNAM']
 	name_filter=name_filter[0]
@@ -82,14 +84,56 @@ try:
 
 except:
 	try:
-		hdulist = fits.open(fichero)
+		pathtoimages=''
+		medidor_path=0
+		for k in range(len(fichero)):
+			if fichero[k]=='/':
+				midealgo=k
+		pathtoimages=fichero[0:midealgo-1]
+		id_table=open(pathtoimages+'/id.csv')
+
+
+		lista=[]
+		images=[]
+		for linea in id_table:
+			medidor=0
+			cuenta=0
+			numero=''
+			for k in range(len(linea)):
+				if linea[k]==',':
+					medidor=0
+				elif linea[k]!=',':
+					medidor=1
+					numero=numero+linea[k]
+				if medidor==0 and numero!='' or k==len(linea)-1:
+					numero=str(numero)
+					lista.append(delete_space(numero))
+					numero=''
+			if len(lista)>1:
+					images.append(lista)
+			lista=[]
+		images=np.array(images)
+		caha_id=images[:,0]
+		filter_id=images[:,1]
+		#url_id=images[:,3] 
+		fich_reducido_id=images[:,2]
+	
+		fichero=delete_folder_name(fichero)
+		name_filter=filter_id[np.where(fich_reducido_id==fichero+'\n')]#hdulist[0].header['INSFLNAM']
+		name_filter=name_filter[0]
+		CAHA_ID=caha_id[np.where(fich_reducido_id==fichero+'\n')]	
+			
 	except:
-		exit()
-	fichero=delete_folder_name(fichero)
-	name_filter=hdulist[0].header['INSFLNAM']
-	CAHA_ID='X'
+		fichero=delete_folder_name(fichero)
+		name_filter=hdulist[0].header['INSFLNAM']
+		CAHA_ID=''
+
 MJD=hdulist[0].header['MJD-OBS']
-color=search_name(name_filter)
+try:
+	color=search_name(name_filter)
+except:
+	name_filter=hdulist[0].header['INSFLNAM']
+	color=search_name(name_filter)
 data = hdulist[0].data
 
 ############################################
@@ -203,11 +247,13 @@ except:
 
 if len_objects_key==1:
 	if len_objects<6:
+		print('Not enough objects in the image')
 		images_table=open('logouts_folder/data_table.csv','a')
 		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects in the image'+'\n')
 		images_table.close
 		exit()
 if len_objects_key==0:
+	print('Not enough objects in the image')
 	images_table=open('logouts_folder/data_table.csv','a')
 	images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects in the image'+'\n')
 	images_table.close
@@ -351,6 +397,7 @@ final_objects=objects
 objects=objects[np.where(SM_flag>-0.05)]
 
 if len(objects[:,0])<6:
+	print('Not enough objects in the image')
 	images_table=open('logouts_folder/data_table.csv','a')
 	images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects in the image'+'\n')
 	images_table.close
@@ -494,8 +541,17 @@ if sdss_key==1:
 		name_mag='APASS imag'
 		limit_detection=22.2
 		limit_sat=14
+	else:
+		print('No avalaible catalog in this skyfield')
+		images_table=open('logouts_folder/data_table.csv','a')
+		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'No avalaible catalog in this skyfield'+'\n')
+		images_table.close
+		exit()
 
-lista=[mag_sex,magerr_sex,ellongation,ellipticity,FWHM,pmag,e_pmag,SPREAD_VALUE,NUMBER_XMATCH,class_sdss]
+if sdss_key==0:
+	lista=[mag_sex,magerr_sex,ellongation,ellipticity,FWHM,pmag,e_pmag,SPREAD_VALUE,NUMBER_XMATCH,class_sdss,q_mode]
+if sdss_key==1:
+	lista=[mag_sex,magerr_sex,ellongation,ellipticity,FWHM,pmag,e_pmag,SPREAD_VALUE,NUMBER_XMATCH]
 
 #alpha_find_sources=np.around(alpha_find_sources,5)
 #delta_find_sources=np.around(delta_find_sources,5)
@@ -514,13 +570,20 @@ pmag=lista[5]
 e_pmag=lista[6]
 SPREAD_VALUE=lista[7]
 NUMBER_XMATCH=lista[8]
-class_sdss=lista[9]
+if sdss_key==0:
+	class_sdss=lista[9]
+	q_mode=lista[10]
 
 if len(pmag)<6:
+	print('Not enough objects for the calibration')
+	images_table=open('logouts_folder/data_table.csv','a')
+	images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects for the calibration'+'\n')
+	images_table.close
 	exit()
 print('number of skymatch objects',len(pmag))
 
-for j in range(len(class_sdss)):
+if sdss_key==0:
+	for j in range(len(class_sdss)):
 		cl_SDSS[np.where(final_objects[:,0]==NUMBER_XMATCH[j])]=class_sdss[j]
 
 plt.figure(figsize=(22.0,7.0))
@@ -537,10 +600,10 @@ plt.plot(mag_sex,pmag,'k.',label='skymatch objects('+str(N_A)+')')
 #error mag selection
 
 for k in range(len(lista)):
-	lista[k]=lista[k][np.where((mag_sex<0.2) & (np.isnan(pmag)==False) & (pmag<limit_detection) & (pmag>limit_sat) & (e_pmag<0.2))]
-if sdss_key==0:
-	class_sdss=class_sdss[np.where((mag_sex<0.2) & (np.isnan(pmag)==False) & (pmag<limit_detection) & (pmag>limit_sat) & (e_pmag<0.2))]
-	q_mode=q_mode[np.where((mag_sex<0.2) & (np.isnan(pmag)==False) & (pmag<limit_detection) & (pmag>limit_sat) & (e_pmag<0.2))]
+	lista[k]=lista[k][np.where((magerr_sex<0.2) & (np.isnan(pmag)==False) & (pmag<limit_detection) & (pmag>limit_sat) & (e_pmag<0.2))]
+#if sdss_key==0:
+#	class_sdss=class_sdss[np.where((mag_sex<0.2) & (np.isnan(pmag)==False) & (pmag<limit_detection) & (pmag>limit_sat) & (e_pmag<0.2))]
+#	q_mode=q_mode[np.where((mag_sex<0.2) & (np.isnan(pmag)==False) & (pmag<limit_detection) & (pmag>limit_sat) & (e_pmag<0.2))]
 
 mag_sex=lista[0]
 magerr_sex=lista[1]
@@ -551,7 +614,9 @@ pmag=lista[5]
 e_pmag=lista[6]
 SPREAD_VALUE=lista[7]
 NUMBER_XMATCH=lista[8]
-
+if sdss_key==0:
+	class_sdss=lista[9]
+	q_mode=lista[10]
 #Morphology selection
 
 median_FWHM=np.median(FWHM)
@@ -565,13 +630,13 @@ for k in range(len(lista)):
 	lista[k]=lista[k][np.where((FWHM<median_FWHM+2*Rq_FWHM) & (FWHM>median_FWHM-2*Rq_FWHM)
 	&(ellongation<median_ellongation+2*Rq_ellongation) & (ellongation>median_ellongation-2*Rq_ellongation)
 	&(ellipticity<median_ellipticity+2*Rq_ellipticity) &(ellipticity>median_ellipticity-2*Rq_ellipticity))]
-if sdss_key==0:
-	class_sdss=class_sdss[np.where((FWHM<median_FWHM+2*Rq_FWHM) & (FWHM>median_FWHM-2*Rq_FWHM)
-	&(ellongation<median_ellongation+2*Rq_ellongation) & (ellongation>median_ellongation-2*Rq_ellongation)
-	&(ellipticity<median_ellipticity+2*Rq_ellipticity) &(ellipticity>median_ellipticity-2*Rq_ellipticity))]
-	q_mode=q_mode[np.where((FWHM<median_FWHM+2*Rq_FWHM) & (FWHM>median_FWHM-2*Rq_FWHM)
-	&(ellongation<median_ellongation+2*Rq_ellongation) & (ellongation>median_ellongation-2*Rq_ellongation)
-	&(ellipticity<median_ellipticity+2*Rq_ellipticity) &(ellipticity>median_ellipticity-2*Rq_ellipticity))]
+#if sdss_key==0:
+#	class_sdss=class_sdss[np.where((FWHM<median_FWHM+2*Rq_FWHM) & (FWHM>median_FWHM-2*Rq_FWHM)
+#	&(ellongation<median_ellongation+2*Rq_ellongation) & (ellongation>median_ellongation-2*Rq_ellongation)
+#	&(ellipticity<median_ellipticity+2*Rq_ellipticity) &(ellipticity>median_ellipticity-2*Rq_ellipticity))]
+#	q_mode=q_mode[np.where((FWHM<median_FWHM+2*Rq_FWHM) & (FWHM>median_FWHM-2*Rq_FWHM)
+#	&(ellongation<median_ellongation+2*Rq_ellongation) & (ellongation>median_ellongation-2*Rq_ellongation)
+#	&(ellipticity<median_ellipticity+2*Rq_ellipticity) &(ellipticity>median_ellipticity-2*Rq_ellipticity))]
 
 mag_sex=lista[0]
 magerr_sex=lista[1]
@@ -579,6 +644,10 @@ pmag=lista[5]
 e_pmag=lista[6]
 SPREAD_VALUE=lista[7]
 NUMBER_XMATCH=lista[8]
+if sdss_key==0:
+	class_sdss=lista[9]
+	q_mode=lista[10]
+	
 for j in range(len(NUMBER_XMATCH)):
 	source_flag[int(NUMBER_XMATCH[j]-1)]=5
 

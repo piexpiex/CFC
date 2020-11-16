@@ -11,7 +11,10 @@ def delete_folder_name(A):
 	for j in range(len(A)):
 		if A[j]=='/':
 			key=j
-	B=A[key+1:]
+	if key==0:
+		B=A
+	else:
+		B=A[key+1:]
 	return(B)
 def add_space(A):
 	word=''
