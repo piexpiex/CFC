@@ -25,3 +25,4 @@ The operating command is:
 
    sh CFC.sh files
 
+In this mode, the image_identifiers appear without the caha_id code, however it is possible to include a cvs file with the name id.csv in the same folder as the images with the name of each image in the first column, the filter in the second column and the caha_id in the third column, the pipeline will process all the image and will add the caha_id to the imagenes of the id.cvs.
