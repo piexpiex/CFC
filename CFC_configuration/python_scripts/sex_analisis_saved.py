@@ -89,8 +89,9 @@ except:
 		for k in range(len(fichero)):
 			if fichero[k]=='/':
 				midealgo=k
-		pathtoimages=fichero[0:midealgo-1]
+		pathtoimages=fichero[0:midealgo]
 		id_table=open(pathtoimages+'/id.csv')
+		
 
 
 		lista=[]
@@ -126,7 +127,7 @@ except:
 	except:
 		fichero=delete_folder_name(fichero)
 		name_filter=hdulist[0].header['INSFLNAM']
-		CAHA_ID=''
+		CAHA_ID='X'
 
 MJD=hdulist[0].header['MJD-OBS']
 try:
@@ -447,15 +448,15 @@ if len(catalog)==0:
 
 
 if len(catalog)<6:
-	print('Insufficient number of objects for photometric calibration')
-	if sdss_key==0:
-		images_table=open('logouts_folder/data_table.csv','a')
-		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'No avalaible catalog in this skyfield'+'\n')
-		images_table.close
+	if len(catalog)==0:
+		motivo='no SDSS/APASS coverage'
 	else:
-		images_table=open('logouts_folder/data_table.csv','a')
-		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'No avalaible catalog in this skyfield'+'\n')
-		images_table.close	
+		motivo='Not avalaible cross-match catalog in this skyfield'
+	print('Insufficient number of objects for photometric calibration')
+	images_table=open('logouts_folder/data_table.csv','a')
+	images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ motivo +'\n')
+	images_table.close
+	
 	exit()	
 
 #Columns selection
@@ -544,7 +545,7 @@ if sdss_key==1:
 	else:
 		print('No avalaible catalog in this skyfield')
 		images_table=open('logouts_folder/data_table.csv','a')
-		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'No avalaible catalog in this skyfield'+'\n')
+		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'No SDSS/APASS coverage'+'\n')
 		images_table.close
 		exit()
 
@@ -770,11 +771,20 @@ if Z[4]>=0.98:
 			extrapolation_mag[i]='C'
 		elif calibration_mag[i]<min_pmag:
 			extrapolation_mag[i]='B'
-	c1 = fits.Column(name='Image_identifier', array=np.array(len(final_objects[:,0])*['CAHA_CAFOS_BBI_DR1_'+str(CAHA_ID[0])]), format='50A')
+	if CAHA_ID=='X':
+		c1 = fits.Column(name='Image_identifier', array=np.array(len(final_objects[:,0])*['CAHA_CAFOS_BBI_DR1']), format='50A')
+	else:
+		c1 = fits.Column(name='Image_identifier', array=np.array(len(final_objects[:,0])*['CAHA_CAFOS_BBI_DR1_'+str(CAHA_ID[0])]), format='50A')
+	
+	
 	NUMBER_ID=np.arange(1,1+len(final_objects[:,0]),1).astype(np.str)
 	DETECTION_ID=np.array(len(NUMBER_ID)*['CAHA_CAFOS_BBI_DR1_'+CAHA_ID[0]+'_0000'])
-	for j in range(len(NUMBER_ID)):
-		DETECTION_ID[j]='CAHA_CAFOS_BBI_DR1_'+CAHA_ID[0]+'_'+'0'*(3-int(np.log10(1+j)))+NUMBER_ID[j]
+	if CAHA_ID=='X':
+		for j in range(len(NUMBER_ID)):
+			DETECTION_ID[j]='CAHA_CAFOS_BBI_DR1_'+'0'*(3-int(np.log10(1+j)))+NUMBER_ID[j]
+	else:
+		for j in range(len(NUMBER_ID)):
+			DETECTION_ID[j]='CAHA_CAFOS_BBI_DR1_'+CAHA_ID[0]+'_'+'0'*(3-int(np.log10(1+j)))+NUMBER_ID[j]
 	c2 = fits.Column(name='Detection_ID', array=DETECTION_ID, format='50A')
 	c3 = fits.Column(name='MJD', array=np.array(len(final_objects[:,0])*[str(MJD)]), format='12A')
 	c4 = fits.Column(name='SNR_WIN',array=final_objects[:,SNR_WIN], format='E')
@@ -813,18 +823,29 @@ if Z[4]>=0.98:
 
 
 
-
-	c1 = fits.Column(name='Image_identifier', array=np.array(len(total_objects[:,0])*['CAHA_CAFOS_BBI_DR1_'+str(CAHA_ID[0])]), format='50A')
+	if CAHA_ID=='X':
+		c1 = fits.Column(name='Image_identifier', array=np.array(len(final_objects[:,0])*['CAHA_CAFOS_BBI_DR1']), format='50A')
+	else:
+		c1 = fits.Column(name='Image_identifier', array=np.array(len(total_objects[:,0])*['CAHA_CAFOS_BBI_DR1_'+str(CAHA_ID[0])]), format='50A')
 	DETECTION_ID=np.array(len(total_objects)*['CAHA_CAFOS_BBI_DR1_'+CAHA_ID[0]+'_0000'])
 	contador_A=1+len(final_objects)
 	contador_B=1
-	for j in range(len(total_objects)):
-		if listaok[j]!=1:
-			DETECTION_ID[j]='CAHA_CAFOS_BBI_DR1_'+CAHA_ID[0]+'_'+'0'*(3-int(np.log10(contador_A)))+str(contador_A)
-			contador_A=contador_A+1
-		if listaok[j]==1:
-			DETECTION_ID[j]='CAHA_CAFOS_BBI_DR1_'+CAHA_ID[0]+'_'+'0'*(3-int(np.log10(contador_B)))+str(contador_B)
-			contador_B=contador_B+1
+	if CAHA_ID=='X':
+		for j in range(len(total_objects)):
+			if listaok[j]!=1:
+				DETECTION_ID[j]='CAHA_CAFOS_BBI_DR1_'+'0'*(3-int(np.log10(contador_A)))+str(contador_A)
+				contador_A=contador_A+1
+			if listaok[j]==1:
+				DETECTION_ID[j]='CAHA_CAFOS_BBI_DR1_'+'0'*(3-int(np.log10(contador_B)))+str(contador_B)
+				contador_B=contador_B+1	
+	else:
+		for j in range(len(total_objects)):
+			if listaok[j]!=1:
+				DETECTION_ID[j]='CAHA_CAFOS_BBI_DR1_'+CAHA_ID[0]+'_'+'0'*(3-int(np.log10(contador_A)))+str(contador_A)
+				contador_A=contador_A+1
+			if listaok[j]==1:
+				DETECTION_ID[j]='CAHA_CAFOS_BBI_DR1_'+CAHA_ID[0]+'_'+'0'*(3-int(np.log10(contador_B)))+str(contador_B)
+				contador_B=contador_B+1
 	c2 = fits.Column(name='Detection_ID', array=DETECTION_ID, format='50A')
 	c3 = fits.Column(name='MJD', array=np.array(len(total_objects[:,0])*[str(MJD)]), format='12A')
 	c4 = fits.Column(name='SNR_WIN',array=total_objects[:,SNR_WIN], format='E')

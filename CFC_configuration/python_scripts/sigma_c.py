@@ -2,23 +2,38 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 def ajuste_lineal(X,Y,W=0):
+	W=np.array([W])
 	#ajuste lineal por minimos cuadrados de los puntos con coordenadas X e Y con pesos W
-	if W==0:
+	if len(W)==1:
+		W=W[0]
 		n=len(X)
 		x=sum(X)
 		y=sum(Y)
 		xy=sum(X*Y)
 		x_2=sum(X*X)
-		A=(n*xy-x*y)/(n*x_2-x*x)
-		B=(y-A*x)/n
-		#B=(x_2*y-x*xy)/(n*x_2-x*x) #desarrollado
-		rest=(Y-B-A*X)
-		sigma=(sum((Y-A*X-B)**2)/(n-2))**0.5
-		d_A=sigma*(n/(n*x_2-x**2))**0.5
-		d_B=d_A*(x_2/n)**0.5
-		r=sum((X-np.mean(X))*(Y-np.mean(Y)))/sum((X-np.mean(X))**2)**0.5/sum((Y-np.mean(Y))**2)**0.5
-		r_2=r**2
-		R_2=1- (sum((rest-n*np.mean(rest))**2)/(n-1))/(sum((Y-n*np.mean(Y))**2)/(n-1))
+		div=n*x_2-x*x
+		if div==0:
+			A=0
+			B=0
+			d_A=0
+			d_B=0
+			r=0
+			r_2=0
+			R_2=0
+			sigma=0
+		else:
+			A=(n*xy-x*y)/div
+			#A=(n*xy-x*y)/(n*x_2-x*x)
+			B=(y-A*x)/n
+			#B=(x_2*y-x*xy)/(n*x_2-x*x) #desarrollado
+			rest=(Y-B-A*X)
+			sigma=(sum((Y-A*X-B)**2)/(n-2))**0.5
+			d_A=sigma*(n/div)**0.5
+			#d_A=sigma*(n/(n*x_2-x**2))**0.5
+			d_B=d_A*(x_2/n)**0.5
+			r=sum((X-np.mean(X))*(Y-np.mean(Y)))/sum((X-np.mean(X))**2)**0.5/sum((Y-np.mean(Y))**2)**0.5
+			r_2=r**2
+			R_2=1- (sum((rest-n*np.mean(rest))**2)/(n-1))/(sum((Y-n*np.mean(Y))**2)/(n-1))
 	else:
 		n=len(X)
 		N=sum(W)
