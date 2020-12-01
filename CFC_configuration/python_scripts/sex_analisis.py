@@ -553,7 +553,7 @@ if sdss_key==1:
 		limit_detection=22.2
 		limit_sat=14
 	else:
-		print('No avalaible catalog in this skyfield')
+		print('Not avalaible cross-match catalog in this skyfield')
 		images_table=open('logouts_folder/data_table.csv','a')
 		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not avalaible cross-match catalog in this skyfield'+'\n')
 		images_table.close
