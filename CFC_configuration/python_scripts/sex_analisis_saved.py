@@ -549,9 +549,9 @@ if sdss_key==1:
 		limit_detection=22.2
 		limit_sat=14
 	else:
-		print('Not avalaible cross-match catalog in this skyfield')
+		print('no SDSS/APASS coverage')
 		images_table=open('logouts_folder/data_table.csv','a')
-		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not avalaible cross-match catalog in this skyfield'+'\n')
+		images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'no SDSS/APASS coverage' +'\n')
 		images_table.close
 		exit()
 
@@ -794,7 +794,7 @@ if Z[4]>=0.98:
 	c2 = fits.Column(name='Detection_ID', array=DETECTION_ID, format='50A')
 	MJD_array=np.zeros(len(final_objects[:,0]))
 	MJD_array[:]=MJD
-	c3 = fits.Column(name='MJD', array=MJD_array, format='F')
+	c3 = fits.Column(name='MJD', array=MJD_array, format='D')
 	c4 = fits.Column(name='SNR_WIN',array=final_objects[:,SNR_WIN], format='E')
 	#c5 = fits.Column(name='RAJ2000', unit='deg',array=np.around(final_objects[:,ALPHA_J2000],5), format='E')
 	#c6 = fits.Column(name='DEJ2000', unit='deg',array=np.around(final_objects[:,DELTA_J2000],5), format='E')
@@ -855,7 +855,7 @@ if Z[4]>=0.98:
 				DETECTION_ID[j]='CAHA_CAFOS_BBI_DR1_'+CAHA_ID[0]+'_'+'0'*(3-int(np.log10(contador_B)))+str(contador_B)
 				contador_B=contador_B+1
 	c2 = fits.Column(name='Detection_ID', array=DETECTION_ID, format='50A')
-	c3 = fits.Column(name='MJD', array=MJD_array, format='F')
+	c3 = fits.Column(name='MJD', array=MJD_array, format='D')
 	c4 = fits.Column(name='SNR_WIN',array=total_objects[:,SNR_WIN], format='E')
 	#c5 = fits.Column(name='RAJ2000', unit='deg',array=np.around(total_objects[:,ALPHA_J2000],5), format='E')
 	#c6 = fits.Column(name='DEJ2000', unit='deg',array=np.around(total_objects[:,DELTA_J2000],5), format='E')
