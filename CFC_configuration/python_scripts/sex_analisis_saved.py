@@ -483,6 +483,7 @@ if sdss_key==0:
 	delta_2_find_sources=catalog['DEdeg']
 	q_mode=catalog['q_mode']
 	class_sdss=catalog['class']
+	mode=catalog['mode']
 	if color=='u'or color=='U':
 		pmag=catalog['umag']
 		e_pmag=catalog['e_umag']
@@ -556,17 +557,20 @@ if sdss_key==1:
 		exit()
 
 if sdss_key==0:
-	lista=[mag_sex,magerr_sex,ellongation,ellipticity,FWHM,pmag,e_pmag,SPREAD_VALUE,NUMBER_XMATCH,class_sdss,q_mode]
+	lista=[mag_sex,magerr_sex,ellongation,ellipticity,FWHM,pmag,e_pmag,SPREAD_VALUE,NUMBER_XMATCH,class_sdss,q_mode,mode]
 if sdss_key==1:
 	lista=[mag_sex,magerr_sex,ellongation,ellipticity,FWHM,pmag,e_pmag,SPREAD_VALUE,NUMBER_XMATCH]
 
+#search with 5 digits
 #alpha_find_sources=np.around(alpha_find_sources,5)
 #delta_find_sources=np.around(delta_find_sources,5)
-Numbers,Numbers_ok=find_sources(alpha_find_sources,delta_find_sources,alpha_2_find_sources,delta_2_find_sources)
 
-for k in range(len(lista)):
-	lista[k]=lista[k][Numbers]
-	lista[k]=lista[k][np.where(Numbers_ok==1)]
+#bestmatch
+#Numbers,Numbers_ok=find_sources(alpha_find_sources,delta_find_sources,alpha_2_find_sources,delta_2_find_sources)
+
+#for k in range(len(lista)):
+#	lista[k]=lista[k][Numbers]
+#	lista[k]=lista[k][np.where(Numbers_ok==1)]
 
 mag_sex=lista[0]
 magerr_sex=lista[1]
@@ -580,6 +584,7 @@ NUMBER_XMATCH=lista[8]
 if sdss_key==0:
 	class_sdss=lista[9]
 	q_mode=lista[10]
+	mode=lista[11]
 
 if len(pmag)<6:
 	print('Not enough objects for the calibration')
@@ -624,6 +629,7 @@ NUMBER_XMATCH=lista[8]
 if sdss_key==0:
 	class_sdss=lista[9]
 	q_mode=lista[10]
+	mode=lista[11]
 #Morphology selection
 
 median_FWHM=np.median(FWHM)
@@ -654,7 +660,7 @@ NUMBER_XMATCH=lista[8]
 if sdss_key==0:
 	class_sdss=lista[9]
 	q_mode=lista[10]
-	
+	mode=lista[11]
 for j in range(len(NUMBER_XMATCH)):
 	source_flag[int(NUMBER_XMATCH[j]-1)]=5
 
@@ -666,9 +672,9 @@ plt.plot(mag_sex,pmag,'b.',label='objects with morphology criteria ('+str(N_B)+'
 if sdss_key==0:
 	for k in range(len(lista)):
 		try:
-			lista[k]=lista[k][np.where((class_sdss==6) & (q_mode=='+'))]
+			lista[k]=lista[k][np.where((class_sdss==6) & (q_mode=='+') & (mode==1.0))]
 		except:
-			lista[k]=lista[k][np.where((class_sdss==6) & (q_mode==1.0))]
+			lista[k]=lista[k][np.where((class_sdss==6) & (q_mode==1.0) & (mode==1.0))]
 
 	mag_sex=lista[0]
 	magerr_sex=lista[1]
@@ -823,8 +829,10 @@ if Z[4]>=0.98:
 	c21 = fits.Column(name='Elongation',array=np.around(final_objects[:,ELONGATION],2), format='E')
 	c22 = fits.Column(name='Ellipticity',array=np.around(final_objects[:,ELLIPTICITY],2), format='E')
 	c23 = fits.Column(name='FWHM', unit='arcsec',array=np.around(3600*final_objects[:,FWHM_WORLD],2), format='E')
+	c24 = fits.Column(name='FLAGS',array=final_objects[:,FLAGS], format='E')
+	c25 = fits.Column(name='FLAGS_WEIGHT',array=final_objects[:,FLAGS_WEIGHT], format='E')
 	
-	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23],name='catalog')
+	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25],name='catalog')
 	t.writeto('catalogs_folder/CFC_catalogs/'+fichero[0:len(fichero)-5]+'_catalog.fits',overwrite=True)
 	votable1=Table.read('catalogs_folder/CFC_catalogs/'+fichero[0:len(fichero)-5]+'_catalog.fits')
 	votable1.write('catalogs_folder/CFC_catalogs/'+fichero[0:len(fichero)-5]+'_catalog.xml',table_id='table_id',format='votable',overwrite=True)
@@ -883,8 +891,10 @@ if Z[4]>=0.98:
 	c20 = fits.Column(name='Ellipticity',array=np.around(final_objects[:,ELLIPTICITY],2), format='E')
 	c21 = fits.Column(name='FWHM', unit='arcsec',array=np.around(3600*total_objects[:,FWHM_WORLD],2), format='E')
 	c22 = fits.Column(name='source_type',array=source_flag, format='E')
+	c23 = fits.Column(name='FLAGS',array=total_objects[:,FLAGS], format='E')
+	c24 = fits.Column(name='FLAGS_WEIGHT',array=final_objects[:,FLAGS_WEIGHT], format='E')
 
-	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22],name='catalog')
+	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24],name='catalog')
 	t.writeto('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.fits',overwrite=True)
 	votable2=Table.read('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.fits')
 	votable2.write('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.xml',table_id='table_id',format='votable',overwrite=True)
