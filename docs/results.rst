@@ -38,6 +38,8 @@ Parameter           Description
 *Elongation*        Value of the object elongation
 *FWHM*              Value of the object Full Weight half maximum
 *source_type*       Type of object between accepted, saturated and artifacts (only for _sources catalogs).
+*FLAGS*             The FLAGS value obtained by SExtractor.
+*FLAGS_WEIGHT*      The FLAGS_WEIGHT value obtained by SExtractor.
 ==================  =======================================================================================================================================================================================================
 
 Figures
