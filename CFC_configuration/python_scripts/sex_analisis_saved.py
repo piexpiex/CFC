@@ -831,8 +831,13 @@ if Z[4]>=0.98:
 	c23 = fits.Column(name='FWHM', unit='arcsec',array=np.around(3600*final_objects[:,FWHM_WORLD],2), format='E')
 	c24 = fits.Column(name='FLAGS',array=final_objects[:,FLAGS], format='E')
 	c25 = fits.Column(name='FLAGS_WEIGHT',array=final_objects[:,FLAGS_WEIGHT], format='E')
+	c26 = fits.Column(name='XWIN_IMAGE',array=final_objects[:,XWIN_IMAGE], format='E')
+	c27 = fits.Column(name='YWIN_IMAGE',array=final_objects[:,YWIN_IMAGE], format='E')
+	c28 = fits.Column(name='XMIN_IMAGE',array=final_objects[:,XMIN_IMAGE], format='E')
+	c29 = fits.Column(name='YMIN_IMAGE',array=final_objects[:,YMIN_IMAGE], format='E')
 	
-	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25],name='catalog')
+	
+	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25,c26,c27,c28,c29],name='catalog')
 	t.writeto('catalogs_folder/CFC_catalogs/'+fichero[0:len(fichero)-5]+'_catalog.fits',overwrite=True)
 	votable1=Table.read('catalogs_folder/CFC_catalogs/'+fichero[0:len(fichero)-5]+'_catalog.fits')
 	votable1.write('catalogs_folder/CFC_catalogs/'+fichero[0:len(fichero)-5]+'_catalog.xml',table_id='table_id',format='votable',overwrite=True)
@@ -893,8 +898,12 @@ if Z[4]>=0.98:
 	c22 = fits.Column(name='source_type',array=source_flag, format='E')
 	c23 = fits.Column(name='FLAGS',array=total_objects[:,FLAGS], format='E')
 	c24 = fits.Column(name='FLAGS_WEIGHT',array=final_objects[:,FLAGS_WEIGHT], format='E')
+	c25 = fits.Column(name='XWIN_IMAGE',array=final_objects[:,XWIN_IMAGE], format='E')
+	c26 = fits.Column(name='YWIN_IMAGE',array=final_objects[:,YWIN_IMAGE], format='E')
+	c27 = fits.Column(name='XMIN_IMAGE',array=final_objects[:,XMIN_IMAGE], format='E')
+	c28 = fits.Column(name='YMIN_IMAGE',array=final_objects[:,YMIN_IMAGE], format='E')
 
-	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24],name='catalog')
+	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25,c26,c27,c28],name='catalog')
 	t.writeto('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.fits',overwrite=True)
 	votable2=Table.read('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.fits')
 	votable2.write('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.xml',table_id='table_id',format='votable',overwrite=True)
