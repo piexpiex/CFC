@@ -214,7 +214,12 @@ X_WORLD=23##  24 X_WORLD                Barycenter position along world x axis  
 Y_WORLD=24#  25 Y_WORLD                Barycenter position along world y axis                     [deg]
 ERRX2_WORLD=25#  26 ERRX2_WORLD            Variance of position along X-WORLD (alpha)                 [deg**2]
 ERRY2_WORLD=26#  27 ERRY2_WORLD            Variance of position along Y-WORLD (delta)                 [deg**2]
-
+XWIN_IMAGE=27
+YWIN_IMAGE=28
+XMIN_IMAGE=29
+YMIN_IMAGE=30
+XMAX_IMAGE=31
+YMAX_IMAGE=32
 
 lista=[]
 objects=[]
@@ -835,9 +840,12 @@ if Z[4]>=0.98:
 	c27 = fits.Column(name='YWIN_IMAGE',array=final_objects[:,YWIN_IMAGE], format='E')
 	c28 = fits.Column(name='XMIN_IMAGE',array=final_objects[:,XMIN_IMAGE], format='E')
 	c29 = fits.Column(name='YMIN_IMAGE',array=final_objects[:,YMIN_IMAGE], format='E')
+	c30 = fits.Column(name='XMAX_IMAGE',array=final_objects[:,XMAX_IMAGE], format='E')
+	c31 = fits.Column(name='YMAX_IMAGE',array=final_objects[:,YMAX_IMAGE], format='E')
 	
 	
-	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25,c26,c27,c28,c29],name='catalog')
+
+	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25,c26,c27,c28,c29,c30,c31],name='catalog')
 	t.writeto('catalogs_folder/CFC_catalogs/'+fichero[0:len(fichero)-5]+'_catalog.fits',overwrite=True)
 	votable1=Table.read('catalogs_folder/CFC_catalogs/'+fichero[0:len(fichero)-5]+'_catalog.fits')
 	votable1.write('catalogs_folder/CFC_catalogs/'+fichero[0:len(fichero)-5]+'_catalog.xml',table_id='table_id',format='votable',overwrite=True)
@@ -902,8 +910,10 @@ if Z[4]>=0.98:
 	c26 = fits.Column(name='YWIN_IMAGE',array=final_objects[:,YWIN_IMAGE], format='E')
 	c27 = fits.Column(name='XMIN_IMAGE',array=final_objects[:,XMIN_IMAGE], format='E')
 	c28 = fits.Column(name='YMIN_IMAGE',array=final_objects[:,YMIN_IMAGE], format='E')
+	c29 = fits.Column(name='XMAX_IMAGE',array=final_objects[:,XMAX_IMAGE], format='E')
+	c30 = fits.Column(name='YMAX_IMAGE',array=final_objects[:,YMAX_IMAGE], format='E')
 
-	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25,c26,c27,c28],name='catalog')
+	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25,c26,c27,c28,c29,c30],name='catalog')
 	t.writeto('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.fits',overwrite=True)
 	votable2=Table.read('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.fits')
 	votable2.write('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.xml',table_id='table_id',format='votable',overwrite=True)
