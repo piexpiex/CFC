@@ -220,6 +220,12 @@ XMIN_IMAGE=29
 YMIN_IMAGE=30
 XMAX_IMAGE=31
 YMAX_IMAGE=32
+FLUX_AUTO=33
+FLUXERR_AUTO=34
+MAG_AUTO=35
+MAGERR_AUTO=36
+
+
 
 lista=[]
 objects=[]
@@ -828,7 +834,7 @@ if Z[4]>=0.98:
 	c15 = fits.Column(name='MAG_sex',array=np.around(final_objects[:,MAG_PSF],3), format='E')
 	c16 = fits.Column(name='e_MAG_sex',array=np.around(final_objects[:,MAGERR_PSF],3), format='E')
 	c17 = fits.Column(name='cl_SDSS',array=cl_SDSS, format='E')
-	c18 = fits.Column(name='SPREAD_MODEL',array=np.around(SM_flag,2), format='E')
+	c18 = fits.Column(name='SPREAD_MODEL',array=SM_flag, format='E')
 	c19 = fits.Column(name='flag_calib',array=extrapolation_mag, format='3A')
 	c20 = fits.Column(name='Filter',array=np.array([name_filter]*len(final_objects[:,0])), format='10A')
 	c21 = fits.Column(name='Elongation',array=np.around(final_objects[:,ELONGATION],2), format='E')
@@ -844,9 +850,12 @@ if Z[4]>=0.98:
 	c31 = fits.Column(name='YMAX_IMAGE',array=final_objects[:,YMAX_IMAGE], format='E')
 	c32 = fits.Column(name='X_IMAGE',array=final_objects[:,X_IMAGE], format='E')
 	c33 = fits.Column(name='Y_IMAGE',array=final_objects[:,Y_IMAGE], format='E')
-	
+	c34 = fits.Column(name='FLUX_AUTO',array=final_objects[:,FLUX_AUTO], format='E')
+	c35 = fits.Column(name='FLUXERR_AUTO',array=final_objects[:,FLUXERR_AUTO], format='E')
+	c36 = fits.Column(name='MAG_AUTO',array=final_objects[:,MAG_AUTO], format='E')
+	c37 = fits.Column(name='MAGERR_AUTO',array=final_objects[:,MAGERR_AUTO], format='E')
 
-	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25,c26,c27,c28,c29,c30,c31,c32,c33],name='catalog')
+	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25,c26,c27,c28,c29,c30,c31,c32,c33,c34,c35,c36,c37],name='catalog')
 	t.writeto('catalogs_folder/CFC_catalogs/'+fichero[0:len(fichero)-5]+'_catalog.fits',overwrite=True)
 	votable1=Table.read('catalogs_folder/CFC_catalogs/'+fichero[0:len(fichero)-5]+'_catalog.fits')
 	votable1.write('catalogs_folder/CFC_catalogs/'+fichero[0:len(fichero)-5]+'_catalog.xml',table_id='table_id',format='votable',overwrite=True)
@@ -899,7 +908,7 @@ if Z[4]>=0.98:
 	c14 = fits.Column(name='e_MAG',array=np.around((abs(e_B)**2+abs(e_A*total_objects[:,17])**2+abs(Z[0]*total_objects[:,18])**2)**0.5,3), format='E')
 	c15 = fits.Column(name='MAG_sex',array=np.around(total_objects[:,MAG_PSF],3), format='E')
 	c16 = fits.Column(name='e_MAG_sex',array=np.around(total_objects[:,MAGERR_PSF],3), format='E')
-	c17 = fits.Column(name='SPREAD_MODEL',array=np.around(total_objects[:,SPREAD_MODEL],2), format='E')
+	c17 = fits.Column(name='SPREAD_MODEL',array=total_objects[:,SPREAD_MODEL], format='E')
 	c18 = fits.Column(name='Filter',array=np.array([name_filter]*len(total_objects[:,0])), format='10A')
 	c19 = fits.Column(name='Elongation',array=np.around(total_objects[:,ELONGATION],2), format='E')
 	c20 = fits.Column(name='Ellipticity',array=np.around(total_objects[:,ELLIPTICITY],2), format='E')
@@ -915,8 +924,12 @@ if Z[4]>=0.98:
 	c30 = fits.Column(name='YMAX_IMAGE',array=total_objects[:,YMAX_IMAGE], format='E')
 	c31 = fits.Column(name='X_IMAGE',array=total_objects[:,X_IMAGE], format='E')
 	c32 = fits.Column(name='Y_IMAGE',array=total_objects[:,Y_IMAGE], format='E')
+	c33 = fits.Column(name='FLUX_AUTO',array=total_objects[:,FLUX_AUTO], format='E')
+	c34 = fits.Column(name='FLUXERR_AUTO',array=total_objects[:,FLUXERR_AUTO], format='E')
+	c35 = fits.Column(name='MAG_AUTO',array=total_objects[:,MAG_AUTO], format='E')
+	c36 = fits.Column(name='MAGERR_AUTO',array=total_objects[:,MAGERR_AUTO], format='E')
 
-	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25,c26,c27,c28,c29,c30,c31,c32],name='catalog')
+	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25,c26,c27,c28,c29,c30,c31,c32,c33,c34,c35,c36],name='catalog')
 	t.writeto('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.fits',overwrite=True)
 	votable2=Table.read('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.fits')
 	votable2.write('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.xml',table_id='table_id',format='votable',overwrite=True)
