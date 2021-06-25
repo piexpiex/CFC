@@ -29,8 +29,8 @@ Parameter           Description
 *DE_dms*            Declination in dd:mm:ss format
 *MAG*               Calibrated magnitude
 *e_MAG*             Uncertainty in calibrated magnitude
-*MAG_sex*           SExtractor magnitude
-*e_MAG_sex*         Uncertainty in SExtractor magnitude
+*MAG_sex*           SExtractor PSF magnitude
+*e_MAG_sex*         Uncertainty in SExtractor PSF magnitude
 *cl_SDSS*           SDSS class, only for object in SDSS field
 *SPREAD_MODEL*      Value of Sextractor SPREAD_MODEL
 *flag_calib*        flag of the calibration curve, if the value is A, the magnitude of the object is within the calibration curve, if it is B it is less and if it is C it is greater than the calibration curve magnitudes
@@ -40,6 +40,10 @@ Parameter           Description
 *source_type*       Type of object between accepted, saturated and artifacts (only for _sources catalogs).
 *FLAGS*             The FLAGS value obtained by SExtractor.
 *FLAGS_WEIGHT*      The FLAGS_WEIGHT value obtained by SExtractor.
+*FLUX_AUTO*         SExtractor AUTO flux
+*FLUXERR_AUTO*      Uncertainty in SExtractor AUTO flux
+*MAG_AUTO*          SExtractor AUTO magnitude
+*MAGERR_AUTO*       Uncertainty in SExtractor AUTO magnitude
 ==================  =======================================================================================================================================================================================================
 
 Figures
