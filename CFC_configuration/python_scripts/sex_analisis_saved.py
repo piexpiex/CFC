@@ -286,7 +286,7 @@ for i in range(len(objects)):
 		listaok[i]=0
 	if objects[i,FLAGS_WEIGHT]==2:
 		listaok[i]=0
-	if abs(objects[i,SNR_WIN])<5 or abs(objects[i,SNR_WIN])>0.99*10**30:
+	if objects[i,SNR_WIN]<5 or objects[i,SNR_WIN]>0.99*10**30:
 		listaok[i]=0
 	if np.shape(data)==(1650,1650):
 		if ((abs(objects[i,X_IMAGE]-825)+objects[i,A_IMAGE])**2+ (abs(objects[i,Y_IMAGE]-825)+objects[i,A_IMAGE])**2)**0.5>814: 
