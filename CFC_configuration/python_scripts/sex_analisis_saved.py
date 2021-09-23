@@ -284,6 +284,8 @@ for i in range(len(objects)):
 		listaok[i]=0
 	if objects[i,MAG_PSF]==99.0:
 		listaok[i]=0
+	if objects[i,MAGERR_PSF]==0 or objects[i,MAGERR_PSF]>1 or objects[i,MAGERR_PSF]==99:
+		listaok[i]=0
 	if objects[i,FLAGS_WEIGHT]==2:
 		listaok[i]=0
 	if objects[i,SNR_WIN]<5 or objects[i,SNR_WIN]>0.99*10**30:
@@ -354,7 +356,9 @@ FLUX_SATURATION_2=FLUX_step-FLUX_step_d
 FLUX_SATURATION=min([FLUX_SATURATION_1,FLUX_SATURATION_2])-1*flux_sigma2
 
 for i in range(len(objects)):
-	if objects[i][FLUX_MAX]>FLUX_SATURATION:
+	if objects[i][FLUX_MAX]>FLUX_SATURATION and listaok[i]==1.0:
+		listaok[i]=2
+	elif (int(float(objects[i][FLAGS]/4)) % 2)==1:
 		listaok[i]=2
 		
 #Double check for no linear weak sources (they were taken as real sources)
@@ -532,8 +536,10 @@ if sdss_key==1:
 		pmag=catalog['rpmag']
 		e_pmag=catalog['e_rpmag']
 		name_mag='APASS rmag'
-		limit_detection=22.70
-		limit_sat=14
+		limit_detection=17 #Vmag
+		limit_sat=7 #Vmag
+		Vmag=['Vmag']
+		e_Vmag=catalog['e_Vmag']
 	elif color=='v'or color=='V':
 		exit()
 		pmag=catalog['Vmag']
@@ -552,14 +558,18 @@ if sdss_key==1:
 		pmag=catalog['gpmag']
 		e_pmag=catalog['e_gpmag']
 		name_mag='APASS gmag'
-		limit_detection=23.13
-		limit_sat=14
+		limit_detection=17 #Vmag
+		limit_sat=7 #Vmag
+		Vmag=['Vmag']
+		e_Vmag=catalog['e_Vmag']
 	elif color=='i'or color=='I':
 		pmag=catalog['ipmag']
 		e_pmag=catalog['e_ipmag']
 		name_mag='APASS imag'
-		limit_detection=22.2
-		limit_sat=14
+		limit_detection=17 #Vmag
+		limit_sat=7 #Vmag
+		Vmag=['Vmag']
+		e_Vmag=catalog['e_Vmag']
 	else:
 		print('no SDSS/APASS coverage')
 		images_table=open('logouts_folder/data_table.csv','a')
@@ -570,7 +580,7 @@ if sdss_key==1:
 if sdss_key==0:
 	lista=[mag_sex,magerr_sex,ellongation,ellipticity,FWHM,pmag,e_pmag,SPREAD_VALUE,NUMBER_XMATCH,class_sdss,q_mode,mode]
 if sdss_key==1:
-	lista=[mag_sex,magerr_sex,ellongation,ellipticity,FWHM,pmag,e_pmag,SPREAD_VALUE,NUMBER_XMATCH]
+	lista=[mag_sex,magerr_sex,ellongation,ellipticity,FWHM,pmag,e_pmag,SPREAD_VALUE,NUMBER_XMATCH,Vmag,e_Vmag]
 
 #search with 5 digits
 #alpha_find_sources=np.around(alpha_find_sources,5)
@@ -596,6 +606,10 @@ if sdss_key==0:
 	class_sdss=lista[9]
 	q_mode=lista[10]
 	mode=lista[11]
+if sdss_key==1:
+	Vmag=lista[9]
+	e_Vmag=lista[10]
+
 
 if len(pmag)<6:
 	print('Not enough objects for the calibration')
@@ -621,9 +635,13 @@ plt.plot(mag_sex,pmag,'k.',label='skymatch objects('+str(N_A)+')')
 ###############################
 
 #error mag selection
+if sdss_key==0:
+	for k in range(len(lista)):
+		lista[k]=lista[k][np.where((magerr_sex<0.2) & (np.isnan(pmag)==False) & (pmag<limit_detection) & (pmag>limit_sat) & (e_pmag<0.2))]
+else:
+	for k in range(len(lista)):
+		lista[k]=lista[k][np.where((magerr_sex<0.2) & (np.isnan(pmag)==False) & (Vmag<limit_detection) & (Vmag>limit_sat) & (e_pmag<0.2))]
 
-for k in range(len(lista)):
-	lista[k]=lista[k][np.where((magerr_sex<0.2) & (np.isnan(pmag)==False) & (pmag<limit_detection) & (pmag>limit_sat) & (e_pmag<0.2))]
 #if sdss_key==0:
 #	class_sdss=class_sdss[np.where((mag_sex<0.2) & (np.isnan(pmag)==False) & (pmag<limit_detection) & (pmag>limit_sat) & (e_pmag<0.2))]
 #	q_mode=q_mode[np.where((mag_sex<0.2) & (np.isnan(pmag)==False) & (pmag<limit_detection) & (pmag>limit_sat) & (e_pmag<0.2))]
@@ -746,7 +764,7 @@ plt.savefig('figures_folder/'+fichero[0:len(fichero)-5]+'_magnitude_calibration.
 
 
 ###########################################
-### Comparasion between both magnitudes ###
+### Comparison between both magnitudes ###
 ###########################################
 
 comp_mag=Y - Z[1]-Z[0]*X
@@ -760,7 +778,7 @@ plt.subplot(1,2,2)
 n,bins,patches=plt.hist(comp_mag,bins=np.arange(-1,1.05,0.05),density=False,facecolor='r')
 plt.ylim(0,max(n)*1.2)
 plt.xlabel(name_mag+' - MAG_PSF ('+name_filter+')')
-plt.savefig('figures_folder/'+fichero[0:len(fichero)-5]+'_magnitude_comparation.pdf')
+plt.savefig('figures_folder/'+fichero[0:len(fichero)-5]+'_magnitude_comparison.pdf')
 
 
 
@@ -854,8 +872,10 @@ if Z[4]>=0.98:
 	c35 = fits.Column(name='FLUXERR_AUTO',array=final_objects[:,FLUXERR_AUTO], format='E')
 	c36 = fits.Column(name='MAG_AUTO',array=final_objects[:,MAG_AUTO], format='E')
 	c37 = fits.Column(name='MAGERR_AUTO',array=final_objects[:,MAGERR_AUTO], format='E')
+	c38 = fits.Column(name='FLUX_MAX',array=final_objects[:,FLUX_MAX], format='E')
+	c39 = fits.Column(name='FLUX_PSF',array=final_objects[:,FLUX_PSF], format='E')
 
-	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25,c26,c27,c28,c29,c30,c31,c32,c33,c34,c35,c36,c37],name='catalog')
+	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25,c26,c27,c28,c29,c30,c31,c32,c33,c34,c35,c36,c37,c38,c39],name='catalog')
 	t.writeto('catalogs_folder/CFC_catalogs/'+fichero[0:len(fichero)-5]+'_catalog.fits',overwrite=True)
 	votable1=Table.read('catalogs_folder/CFC_catalogs/'+fichero[0:len(fichero)-5]+'_catalog.fits')
 	votable1.write('catalogs_folder/CFC_catalogs/'+fichero[0:len(fichero)-5]+'_catalog.xml',table_id='table_id',format='votable',overwrite=True)
@@ -928,8 +948,10 @@ if Z[4]>=0.98:
 	c34 = fits.Column(name='FLUXERR_AUTO',array=total_objects[:,FLUXERR_AUTO], format='E')
 	c35 = fits.Column(name='MAG_AUTO',array=total_objects[:,MAG_AUTO], format='E')
 	c36 = fits.Column(name='MAGERR_AUTO',array=total_objects[:,MAGERR_AUTO], format='E')
+	c37 = fits.Column(name='FLUX_MAX',array=final_objects[:,FLUX_MAX], format='E')
+	c38 = fits.Column(name='FLUX_PSF',array=final_objects[:,FLUX_PSF], format='E')
 
-	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25,c26,c27,c28,c29,c30,c31,c32,c33,c34,c35,c36],name='catalog')
+	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25,c26,c27,c28,c29,c30,c31,c32,c33,c34,c35,c36,c37,c38],name='catalog')
 	t.writeto('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.fits',overwrite=True)
 	votable2=Table.read('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.fits')
 	votable2.write('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.xml',table_id='table_id',format='votable',overwrite=True)
