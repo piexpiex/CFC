@@ -361,7 +361,7 @@ FLUX_SATURATION=min([FLUX_SATURATION_1,FLUX_SATURATION_2])-1*flux_sigma2
 for i in range(len(objects)):
 	if objects[i][FLUX_MAX]>FLUX_SATURATION and listaok[i]==1.0:
 		listaok[i]=2
-	elif (int(float(objects[i][FLAGS]/4)) % 2)==1:
+	elif (int(float(objects[i][FLAGS]/4)) % 2)==1 and listaok[i]==1.0: 
 		listaok[i]=2
 		
 #Double check for no linear weak sources (they were taken as real sources)
