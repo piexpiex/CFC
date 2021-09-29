@@ -543,7 +543,7 @@ if sdss_key==1:
 		name_mag='APASS rmag'
 		limit_detection=17 #Vmag
 		limit_sat=7 #Vmag
-		Vmag=['Vmag']
+		Vmag=catalog['Vmag']
 		e_Vmag=catalog['e_Vmag']
 	elif color=='v'or color=='V':
 		exit()
@@ -565,7 +565,7 @@ if sdss_key==1:
 		name_mag='APASS gmag'
 		limit_detection=17 #Vmag
 		limit_sat=7 #Vmag
-		Vmag=['Vmag']
+		Vmag=catalog['Vmag']
 		e_Vmag=catalog['e_Vmag']
 	elif color=='i'or color=='I':
 		pmag=catalog['ipmag']
@@ -573,7 +573,7 @@ if sdss_key==1:
 		name_mag='APASS imag'
 		limit_detection=17 #Vmag
 		limit_sat=7 #Vmag
-		Vmag=['Vmag']
+		Vmag=catalog['Vmag']
 		e_Vmag=catalog['e_Vmag']
 	else:
 		print('no SDSS/APASS coverage')
