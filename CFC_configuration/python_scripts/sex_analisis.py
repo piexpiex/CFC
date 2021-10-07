@@ -758,8 +758,7 @@ e_B=abs(Z_MC[3])
 
 try:
 	for j in range(len(X)):
-		if np.where(mag_sex==X[j])==np.where(pmag==Y[j]):
-			source_flag[int(NUMBER_XMATCH[np.where(mag_sex==X[j])]-1)]=6
+		source_flag[int(NUMBER_XMATCH[ np.where( (mag_sex==X[j]) & (pmag==Y[j]) )]-1)]=6
 except:
 	pass
 N_C=len(X)
