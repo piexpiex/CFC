@@ -667,7 +667,12 @@ if sdss_key==0:
 	q_mode=lista[10]
 	mode=lista[11]
 #Morphology selection
-
+if len(pmag)<6:
+	print('Not enough objects for the calibration')
+	images_table=open('logouts_folder/data_table.csv','a')
+	images_table.write(fichero[0:len(fichero)-5] +','+  ' ' +','+ ' ' +','+  ' ' +','+  ' ' +','+  ' ' +','+ ' ' +','+ ' ' +','+ 'rejected'+','+ 'Not enough objects for the calibration'+'\n')
+	images_table.close
+	exit()
 median_FWHM=np.median(FWHM)
 Rq_FWHM=np.percentile(FWHM,75)-np.percentile(FWHM,25)
 median_ellongation=np.median(ellongation)
