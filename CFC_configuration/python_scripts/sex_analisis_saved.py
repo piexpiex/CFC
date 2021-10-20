@@ -252,7 +252,6 @@ for linea in catalogo:
 		objects.append(lista)
 		lista=[]
 objects=np.array(objects)
-
 total_objects=objects.copy()
 
 len_objects_key=0
@@ -415,6 +414,7 @@ SM_flag=objects[:,SPREAD_MODEL]
 #		SM_flag[i]=0.0
 cl_SDSS=np.array([0.0]*len(objects[:,SPREAD_MODEL]))
 final_objects=objects
+
 objects=objects[np.where(SM_flag>-0.05)]
 
 if len(objects[:,0])<6:
@@ -745,7 +745,7 @@ if len(mag_sex)<6:
 #e_B=abs(Z_up[3]-Z_down[3])/2 
 
 #Classic method with Monte Carlo uncertainties
-X,Y,Z,lista_sigma_c=sigma_c(X=mag_sex,Y=pmag,n_sigma=2)
+X,Y,NUMBER_XMATCH,Z,lista_sigma_c=sigma_c(X=mag_sex,Y=pmag,idfs=NUMBER_XMATCH,n_sigma=2)
 n_times=500
 X_MC=np.repeat(X,n_times)+np.repeat(magerr_sex[lista_sigma_c],n_times)*np.random.normal(size=np.size(X)*n_times)
 Y_MC=np.repeat(Y,n_times)+np.repeat(e_pmag[lista_sigma_c],n_times)*np.random.normal(size=np.size(Y)*n_times)
@@ -753,11 +753,9 @@ Z_MC=ajuste_lineal(X_MC,Y_MC,W=0)
 e_A=abs(Z_MC[2])
 e_B=abs(Z_MC[3])
 
-try:
-	for j in range(len(X)):
-		source_flag[int(NUMBER_XMATCH[ np.where( (mag_sex==X[j]) & (pmag==Y[j]) )]-1)]=6
-except:
-	pass
+for j in range(len(NUMBER_XMATCH)):
+	source_flag[int(NUMBER_XMATCH[j]-1)]=6
+
 N_C=len(X)
 plt.plot(X,Y,'r.',label='Calibration objects ('+str(N_C)+')')
 plt.plot(mag_sex,Z[1]+Z[0]*mag_sex,'r',label=name_mag+'={0:.3g}'.format(Z[0])+' × MAG PSF + {0:.3g}'.format(Z[1]) + ' (r={0:.3g}'.format(Z[4])+')')
@@ -952,8 +950,8 @@ if Z[4]>=0.98:
 	c34 = fits.Column(name='FLUXERR_AUTO',array=total_objects[:,FLUXERR_AUTO], format='E')
 	c35 = fits.Column(name='MAG_AUTO',array=total_objects[:,MAG_AUTO], format='E')
 	c36 = fits.Column(name='MAGERR_AUTO',array=total_objects[:,MAGERR_AUTO], format='E')
-	c37 = fits.Column(name='FLUX_MAX',array=final_objects[:,FLUX_MAX], format='E')
-	c38 = fits.Column(name='FLUX_PSF',array=final_objects[:,FLUX_PSF], format='E')
+	c37 = fits.Column(name='FLUX_MAX',array=total_objects[:,FLUX_MAX], format='E')
+	c38 = fits.Column(name='FLUX_PSF',array=total_objects[:,FLUX_PSF], format='E')
 
 	t = fits.BinTableHDU.from_columns([c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25,c26,c27,c28,c29,c30,c31,c32,c33,c34,c35,c36,c37,c38],name='catalog')
 	t.writeto('catalogs_folder/CFC_sources/'+fichero[0:len(fichero)-5]+'_sources.fits',overwrite=True)

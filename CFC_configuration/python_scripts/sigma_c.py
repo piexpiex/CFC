@@ -52,9 +52,10 @@ def ajuste_lineal(X,Y,W=0):
 		R_2=1- (sum((rest-N*np.mean(rest))**2)/(n-1))/(sum((W*Y-N*np.mean(Y))**2)/(n-1))
 	return(A,B,d_A,d_B,r,r_2,R_2,sigma)
 	
-def sigma_c(X,Y,W=0,n_sigma=1,n_iteraciones=1):
+def sigma_c(X,Y,idfs,W=0,n_sigma=1,n_iteraciones=1):
 	x=X
 	y=Y
+	identificadores=idfs #orden en el array
 	ajuste=ajuste_lineal(x,y)
 	for k in range(n_iteraciones):	
 		A=ajuste[0]
@@ -63,6 +64,7 @@ def sigma_c(X,Y,W=0,n_sigma=1,n_iteraciones=1):
 		lista=np.where((y<ajuste[1]+ajuste[0]*x+n_sigma*ajuste[7]) & (y>ajuste[1]+ajuste[0]*x-n_sigma*ajuste[7]))
 		y_k=y[lista]
 		x_k=x[lista]
+		NUMBER_XMATCH_k=identificadores[lista]
 		ajuste=ajuste_lineal(x_k,y_k)
-	return(x_k,y_k,ajuste,lista)
+	return(x_k,y_k,NUMBER_XMATCH_k,ajuste,lista)
 
