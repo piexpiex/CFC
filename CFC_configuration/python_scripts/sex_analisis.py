@@ -724,6 +724,9 @@ if sdss_key==0:
 	e_pmag=lista[6]
 	SPREAD_VALUE=lista[7]
 	NUMBER_XMATCH=lista[8]
+	class_sdss=lista[9]
+	for j in range(len(class_sdss)):
+		cl_SDSS[np.where(final_objects[:,0]==NUMBER_XMATCH[j])]=6
 	print('number of objects with SDSS class=6 & q mode=1.0 ',len(mag_sex))
 	
 
