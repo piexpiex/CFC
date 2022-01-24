@@ -5,6 +5,13 @@ def delete_space(A):
 		while A[len(A)-1]==' ' and A!=' ':
 			A=A[0:len(A)-1]
 	return(A)
+def delete_space2(A):
+	if len(A)>0:
+		while A[0]=='_' and A!='_':
+			A=A[1:len(A)]
+		while A[len(A)-1]=='_' and A!='_':
+			A=A[0:len(A)-1]
+	return(A)
 def delete_folder_name(A):
 	B=''
 	key=0
