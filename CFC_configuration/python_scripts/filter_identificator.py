@@ -12,6 +12,7 @@ def search_name(name_filter):
 			filter_name=filter_name[j+5:]
 			
 	filter_name=delete_space(filter_name)
+	filter_name=delete_space2(filter_name)
 	
 	if filter_name=='u' or filter_name=='U':
 		filter_name='u'
