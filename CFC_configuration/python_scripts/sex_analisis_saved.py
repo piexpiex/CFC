@@ -910,7 +910,9 @@ if Z[4]>=0.98:
 				DETECTION_ID[j]='CAHA_CAFOS_BBI_DR1_'+CAHA_ID[0]+'_'+'0'*(3-int(np.log10(contador_B)))+str(contador_B)
 				contador_B=contador_B+1
 	c2 = fits.Column(name='Detection_ID', array=DETECTION_ID, format='50A')
-	c3 = fits.Column(name='MJD', array=MJD_array, format='D')
+	MJD_array2=np.zeros(len(total_objects[:,0]))
+	MJD_array2[:]=MJD
+	c3 = fits.Column(name='MJD', array=MJD_array2, format='D')
 	c4 = fits.Column(name='SNR_WIN',array=total_objects[:,SNR_WIN], format='E')
 	#c5 = fits.Column(name='RAJ2000', unit='deg',array=np.around(total_objects[:,ALPHA_J2000],5), format='E')
 	#c6 = fits.Column(name='DEJ2000', unit='deg',array=np.around(total_objects[:,DELTA_J2000],5), format='E')
